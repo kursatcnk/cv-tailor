@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="İlana göre CV hazırlama aracı">
+  <title>CV Tailor</title>
+  <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script src="assets/js/session.js"></script>
+  <script>window.CvTailorSession.requireAuth();</script>
+</head>
+<body>
+  <div class="ct-shell">
+    <aside class="ct-sidebar">
+      <a class="ct-brand" href="#vault"><img src="assets/img/mark.svg" alt=""><strong>CV Tailor</strong></a>
+      <nav class="ct-nav" aria-label="Ana menü">
+        <a href="#vault" data-view="vault">Kariyer kasası</a>
+        <a href="#new" data-view="new">Yeni CV</a>
+        <a href="#cvs" data-view="cvs">CV'lerim</a>
+        <a href="#account" data-view="account">Hesap</a>
+      </nav>
+      <div class="ct-usage" id="ct-usage" hidden>
+        <div class="ct-usage-row"><span>Bu ay</span><span id="ct-usage-text"></span></div>
+        <div class="ct-usage-bar"><i id="ct-usage-bar"></i></div>
+      </div>
+    </aside>
+
+    <main class="ct-main">
+      <div class="ct-banner" id="ct-verify-banner" hidden>
+        E-posta adresin henüz doğrulanmadı. <a href="auth/email-verification.html">Şimdi doğrula</a>
+      </div>
+
+      <section class="ct-view" data-view="vault">
+        <header class="ct-view-head">
+          <h1>Kariyer kasası</h1>
+          <p>Bütün deneyimlerin, projelerin ve becerilerin burada durur. İlana özel her CV bu kasadan üretilir.</p>
+        </header>
+        <div class="ct-empty">
+          <strong>Kasan henüz boş.</strong>
+          <p>CV'ni yükleyince deneyimlerin, eğitimin ve becerilerin buraya bölüm bölüm aktarılacak; sen de kontrol edip düzelteceksin.</p>
+          <button class="ct-button" type="button" disabled>CV yükle</button>
+        </div>
+      </section>
+
+      <section class="ct-view" data-view="new" hidden>
+        <header class="ct-view-head">
+          <h1>Yeni CV</h1>
+          <p>Başvuracağın ilanı yapıştır ya da ilan yoksa meslek ve seviye seç.</p>
+        </header>
+        <div class="ct-empty">
+          <strong>Önce kasanı doldur.</strong>
+          <p>İlana göre CV hazırlamak için kasanda en az bir deneyim ya da proje olmalı.</p>
+          <a class="ct-button ct-button-secondary" href="#vault">Kasaya git</a>
+        </div>
+      </section>
+
+      <section class="ct-view" data-view="cvs" hidden>
+        <header class="ct-view-head">
+          <h1>CV'lerim</h1>
+          <p>İlanlara göre hazırladığın CV'ler. Her biri hazırlandığı andaki hâliyle saklanır.</p>
+        </header>
+        <div class="ct-empty">
+          <strong>Henüz CV hazırlamadın.</strong>
+          <p>Hazırladığın her CV, hangi ilan için olduğuyla birlikte burada listelenecek.</p>
+        </div>
+      </section>
+
+      <section class="ct-view" data-view="account" hidden>
+        <header class="ct-view-head">
+          <h1>Hesap</h1>
+          <p>Hesap bilgilerin, kullanım durumun ve verilerin.</p>
+        </header>
+
+        <div class="ct-card">
+          <h2>Profil</h2>
+          <dl class="ct-facts">
+            <div><dt>E-posta</dt><dd id="ct-account-email">-</dd></div>
+            <div><dt>Durum</dt><dd id="ct-account-verified">-</dd></div>
+            <div><dt>Plan</dt><dd id="ct-account-plan">-</dd></div>
+            <div><dt>AI motoru</dt><dd id="ct-account-ai">-</dd></div>
+          </dl>
+          <form class="ct-inline-form" id="ct-name-form">
+            <label class="ct-label" for="ct-name">Ad</label>
+            <div class="ct-inline-row">
+              <input class="ct-input" id="ct-name" autocomplete="name" maxlength="100">
+              <button class="ct-button ct-button-secondary" type="submit">Kaydet</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="ct-card">
+          <h2>Şifre</h2>
+          <form class="ct-stack" id="ct-password-form">
+            <label class="ct-label" for="ct-current-password">Mevcut şifre</label>
+            <input class="ct-input" id="ct-current-password" type="password" autocomplete="current-password">
+            <label class="ct-label" for="ct-new-password">Yeni şifre</label>
+            <input class="ct-input" id="ct-new-password" type="password" autocomplete="new-password" placeholder="En az 8 karakter">
+            <div><button class="ct-button ct-button-secondary" type="submit">Şifreyi değiştir</button></div>
+          </form>
+        </div>
+
+        <div class="ct-card ct-card-danger">
+          <h2>Oturum ve veriler</h2>
+          <p>Hesabını silersen kariyer kasan, ilanların ve ürettiğin bütün CV'ler kalıcı olarak silinir.</p>
+          <div class="ct-actions">
+            <button class="ct-button ct-button-secondary" type="button" id="ct-logout">Çıkış yap</button>
+            <a class="ct-button ct-button-danger" href="auth/confirm-password.html?action=delete-account">Hesabı sil</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="ct-toast" id="ct-toast" role="status" aria-live="polite"></div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

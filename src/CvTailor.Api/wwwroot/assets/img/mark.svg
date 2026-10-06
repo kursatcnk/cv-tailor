@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-labelledby="title">
+  <title id="title">CV Tailor</title>
+  <rect x="1" y="1" width="38" height="38" rx="11" fill="#17191c"/>
+  <rect x="12" y="9" width="16" height="22" rx="2.5" fill="#f7f4ee"/>
+  <path d="M15.5 14h9M15.5 18h9M15.5 22h5.5" stroke="#17191c" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M8 27.5h24" stroke="#ea6a34" stroke-width="2" stroke-linecap="round" stroke-dasharray="2.6 2.4"/>
+</svg>
