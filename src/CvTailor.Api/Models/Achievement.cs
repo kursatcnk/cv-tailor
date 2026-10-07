@@ -3,7 +3,7 @@ namespace CvTailor.Api.Models
     // CV'deki tek bir madde. Ya bir deneyime ya bir projeye bağlı, ikisinden biri dolu.
     // Uydurma koruması bu kayıtların Id'leri üzerinden çalışıyor: yeniden yazılan her madde
     // hangi Achievement'lardan türediğini söylemek zorunda.
-    public class Achievement
+    public class Achievement : IVaultItem
     {
         public Guid Id { get; set; }
         public Guid? ExperienceId { get; set; }

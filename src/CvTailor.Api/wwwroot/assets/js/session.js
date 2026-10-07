@@ -91,14 +91,16 @@ window.CvTailorSession = (() => {
     return csrfToken;
   }
 
+  // FormData (dosya yükleme) olduğu gibi gidiyor; Content-Type'ı boundary ile birlikte tarayıcı koyuyor.
   async function send(path, method, body) {
     const headers = { "Accept": "application/json" };
-    if (body !== undefined) headers["Content-Type"] = "application/json";
+    const isForm = body instanceof FormData;
+    if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
     if (method !== "GET") {
       const token = await loadCsrfToken();
       if (token) headers["X-CSRF-TOKEN"] = token;
     }
-    return fetch(path, { method, headers, credentials: "same-origin", body: body === undefined ? undefined : JSON.stringify(body) });
+    return fetch(path, { method, headers, credentials: "same-origin", body: body === undefined ? undefined : isForm ? body : JSON.stringify(body) });
   }
 
   // Her istek { ok, status, data } dönüyor, çağıran taraf fetch detaylarıyla uğraşmıyor.
@@ -140,7 +142,8 @@ window.CvTailorSession = (() => {
     get: path => request(path),
     post: (path, body = {}) => request(path, { method: "POST", body }),
     put: (path, body = {}) => request(path, { method: "PUT", body }),
-    del: path => request(path, { method: "DELETE" })
+    del: path => request(path, { method: "DELETE" }),
+    upload: (path, formData) => request(path, { method: "POST", body: formData })
   };
 
   return { isSignedIn, getUser, updateUser, saveSession, clearSession, signOut, requireAuth, request, api, setFlash, takeFlash };

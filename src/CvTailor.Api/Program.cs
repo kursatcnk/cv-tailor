@@ -12,6 +12,7 @@ using Microsoft.OpenApi;
 using CvTailor.Api.Data;
 using CvTailor.Api.Services;
 using CvTailor.Api.Services.Ai;
+using CvTailor.Api.Services.Cv;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,6 +118,10 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<UsageService>();
+builder.Services.AddSingleton<CvTextExtractor>();
+builder.Services.AddSingleton<CvParser>();
+builder.Services.AddScoped<CvImportService>();
+builder.Services.AddScoped<VaultService>();
 builder.Services.AddScoped<OneTimeCodeService>();
 builder.Services.AddHostedService<CleanupService>();
 

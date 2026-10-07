@@ -1,6 +1,6 @@
 namespace CvTailor.Api.Models
 {
-    public class Certificate
+    public class Certificate : IVaultItem
     {
         public Guid Id { get; set; }
         public Guid ProfileId { get; set; }

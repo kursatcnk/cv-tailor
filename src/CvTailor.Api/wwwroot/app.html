@@ -35,14 +35,56 @@
       </div>
 
       <section class="ct-view" data-view="vault">
-        <header class="ct-view-head">
-          <h1>Kariyer kasası</h1>
-          <p>Bütün deneyimlerin, projelerin ve becerilerin burada durur. İlana özel her CV bu kasadan üretilir.</p>
+        <header class="ct-view-head ct-view-head-row">
+          <div>
+            <h1>Kariyer kasası</h1>
+            <p>Bütün deneyimlerin, projelerin ve becerilerin burada durur. İlana özel her CV bu kasadan üretilir.</p>
+          </div>
+          <button class="ct-button ct-button-secondary" type="button" id="ct-reimport" hidden>Yeni CV yükle</button>
         </header>
-        <div class="ct-empty">
-          <strong>Kasan henüz boş.</strong>
-          <p>CV'ni yükleyince deneyimlerin, eğitimin ve becerilerin buraya bölüm bölüm aktarılacak; sen de kontrol edip düzelteceksin.</p>
-          <button class="ct-button" type="button" disabled>CV yükle</button>
+
+        <div class="ct-loading" id="ct-vault-loading">Kasa yükleniyor...</div>
+
+        <div class="ct-import" id="ct-import" hidden>
+          <div class="ct-import-head">
+            <strong id="ct-import-title">Kasan henüz boş. CV'ni yükleyerek başla.</strong>
+            <p>CV'ndeki deneyim, eğitim ve beceriler bölüm bölüm ayrılır. Maddelerin kelimesi kelimesine aktarılır; sen kontrol edip düzeltirsin.</p>
+          </div>
+          <label class="ct-drop" id="ct-drop">
+            <input type="file" id="ct-file" accept=".pdf,.docx,.txt" hidden>
+            <strong>Dosya seç ya da buraya bırak</strong>
+            <span>PDF, DOCX ya da TXT · en fazla 5 MB</span>
+          </label>
+          <details class="ct-paste">
+            <summary>Dosya yerine metni yapıştır</summary>
+            <textarea class="ct-textarea" id="ct-paste-text" rows="8" placeholder="CV'nin tamamını buraya yapıştır"></textarea>
+            <button class="ct-button ct-button-secondary" type="button" id="ct-paste-submit">Metni oku</button>
+          </details>
+          <div class="ct-import-actions" id="ct-import-cancel-row" hidden>
+            <button class="ct-link-button" type="button" id="ct-import-cancel">Vazgeç, kasaya dön</button>
+          </div>
+          <div class="ct-busy" id="ct-import-busy" hidden>CV okunuyor, bölümlere ayrılıyor...</div>
+        </div>
+
+        <div class="ct-review" id="ct-review" hidden>
+          <strong>CV'nden okunanlar. Kontrol et, eksikleri tamamla, sonra kasaya kaydet.</strong>
+          <ul id="ct-review-notes"></ul>
+        </div>
+
+        <div class="ct-editor-layout" id="ct-editor-layout" hidden>
+          <form class="ct-editor" id="ct-editor" novalidate></form>
+          <aside class="ct-source" id="ct-source" hidden>
+            <div class="ct-source-head"><strong>Okunan metin</strong><span>Karşılaştırmak için</span></div>
+            <pre id="ct-source-text"></pre>
+          </aside>
+        </div>
+
+        <div class="ct-savebar" id="ct-savebar" hidden>
+          <span id="ct-savebar-text">Kaydedilmemiş değişiklikler var.</span>
+          <div class="ct-actions">
+            <button class="ct-button ct-button-secondary" type="button" id="ct-discard">Vazgeç</button>
+            <button class="ct-button" type="button" id="ct-save">Kasaya kaydet</button>
+          </div>
         </div>
       </section>
 
@@ -117,5 +159,6 @@
 
   <div class="ct-toast" id="ct-toast" role="status" aria-live="polite"></div>
   <script src="assets/js/app.js"></script>
+  <script src="assets/js/vault.js"></script>
 </body>
 </html>

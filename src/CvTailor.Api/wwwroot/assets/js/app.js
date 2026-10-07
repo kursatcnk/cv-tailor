@@ -70,5 +70,8 @@
     window.location.replace("auth/sign-in.html");
   });
 
+  // Ekran dosyaları (vault.js...) bildirim göstermek ve AI işleminden sonra kotayı tazelemek için kullanıyor.
+  window.CvTailorUi = { toast, refreshUsage: loadMe };
+
   loadMe();
 })();
