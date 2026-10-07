@@ -89,7 +89,7 @@ namespace CvTailor.Api.Services.Matching
             {
                 "strong" => $"{Where(item.Evidence)} geçiyor.",
                 "weak" => "Kasanda listelenmiş ama bir işte ya da projede kullandığın görünmüyor. Bunu gösteren bir madde kanıtı güçlendirir.",
-                _ => "Kasanda bununla ilgili bir bilgi yok."
+                _ => MissingNote(item.Category)
             };
 
             // "C# ve SQL" gibi birden çok şey isteyen gereksinimde sadece bir kısmı varsa tam kanıt sayılmaz.
@@ -195,6 +195,16 @@ namespace CvTailor.Api.Services.Matching
                 _ => "Kasanda"
             };
         }
+
+        // Eksik gereksinim nasıl kapanır? Teknik ve deneyim eksikleri sorularla, diğerleri kasaya eklenerek.
+        private static string MissingNote(string category) => category switch
+        {
+            "education" => "Eğitim bölümünde bununla eşleşen bir okul ya da bölüm yok.",
+            "language" => "Becerilerinde bu dil yok; biliyorsan seviyesiyle birlikte kasana ekle.",
+            "certification" => "Sertifikalarında yok; varsa kasana ekle.",
+            "other" => "Kasanda yok. Bu bilgi genelde CV'nin kişisel bilgiler kısmında olur.",
+            _ => "Kasanda bununla ilgili bir bilgi yok."
+        };
 
         private static (string Verdict, string Advice) Summarize(MatchResult r)
         {
