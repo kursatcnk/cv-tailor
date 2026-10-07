@@ -91,24 +91,42 @@
       <section class="ct-view" data-view="new" hidden>
         <header class="ct-view-head">
           <h1>Yeni CV</h1>
-          <p>Başvuracağın ilanı yapıştır ya da ilan yoksa meslek ve seviye seç.</p>
+          <p>Başvuracağın ilanı yapıştır. İlanın ne istediği madde madde çıkarılır; CV'n bu listeye göre hazırlanır.</p>
         </header>
-        <div class="ct-empty">
+        <div class="ct-empty" id="ct-new-empty" hidden>
           <strong>Önce kasanı doldur.</strong>
           <p>İlana göre CV hazırlamak için kasanda en az bir deneyim ya da proje olmalı.</p>
           <a class="ct-button ct-button-secondary" href="#vault">Kasaya git</a>
         </div>
+        <form class="ct-card ct-target-form" id="ct-target-form" novalidate hidden>
+          <label class="ct-field is-wide"><span>İlan metni</span>
+            <textarea class="ct-textarea" id="ct-posting" rows="12" placeholder="İlanın tamamını yapıştır: pozisyon, iş tanımı, aranan nitelikler, tercih sebepleri..."></textarea>
+          </label>
+          <div class="ct-grid">
+            <label class="ct-field"><span>Pozisyon (isteğe bağlı)</span><input class="ct-input" id="ct-target-title" maxlength="200"></label>
+            <label class="ct-field"><span>Şirket (isteğe bağlı)</span><input class="ct-input" id="ct-target-company" maxlength="200"></label>
+          </div>
+          <p class="ct-hint">Pozisyon ve şirketi boş bırakırsan ilandan okunur.</p>
+          <div class="ct-actions">
+            <button class="ct-button" type="submit" id="ct-analyze">İlanı çözümle</button>
+          </div>
+          <div class="ct-busy" id="ct-analyze-busy" hidden>İlan okunuyor, gereksinimler ayrılıyor...</div>
+        </form>
+        <div id="ct-new-result" hidden></div>
       </section>
 
       <section class="ct-view" data-view="cvs" hidden>
         <header class="ct-view-head">
           <h1>CV'lerim</h1>
-          <p>İlanlara göre hazırladığın CV'ler. Her biri hazırlandığı andaki hâliyle saklanır.</p>
+          <p>Başvurduğun ilanlar ve onlar için hazırladığın CV'ler. İlan yayından kalksa da ne istendiği burada kalır.</p>
         </header>
-        <div class="ct-empty">
-          <strong>Henüz CV hazırlamadın.</strong>
-          <p>Hazırladığın her CV, hangi ilan için olduğuyla birlikte burada listelenecek.</p>
+        <div class="ct-empty" id="ct-cvs-empty" hidden>
+          <strong>Henüz bir ilan eklemedin.</strong>
+          <p>"Yeni CV"den bir ilan çözümlediğinde burada listelenir.</p>
+          <a class="ct-button ct-button-secondary" href="#new">Yeni CV</a>
         </div>
+        <div class="ct-target-list" id="ct-target-list"></div>
+        <div id="ct-cvs-detail" hidden></div>
       </section>
 
       <section class="ct-view" data-view="account" hidden>
@@ -160,5 +178,6 @@
   <div class="ct-toast" id="ct-toast" role="status" aria-live="polite"></div>
   <script src="assets/js/app.js"></script>
   <script src="assets/js/vault.js"></script>
+  <script src="assets/js/targets.js"></script>
 </body>
 </html>

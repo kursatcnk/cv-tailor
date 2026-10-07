@@ -13,6 +13,7 @@ using CvTailor.Api.Data;
 using CvTailor.Api.Services;
 using CvTailor.Api.Services.Ai;
 using CvTailor.Api.Services.Cv;
+using CvTailor.Api.Services.Targets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -122,6 +123,8 @@ builder.Services.AddSingleton<CvTextExtractor>();
 builder.Services.AddSingleton<CvParser>();
 builder.Services.AddScoped<CvImportService>();
 builder.Services.AddScoped<VaultService>();
+builder.Services.AddSingleton<JobAnalyzer>();
+builder.Services.AddScoped<TargetService>();
 builder.Services.AddScoped<OneTimeCodeService>();
 builder.Services.AddHostedService<CleanupService>();
 

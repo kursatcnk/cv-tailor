@@ -74,6 +74,14 @@
     setDirty(false);
     showImport(!data.exists);
     showEditor(data.exists);
+    announce();
+  }
+
+  // "Yeni CV" ekranı kasada CV'ye girecek bir şey olup olmadığını buradan öğreniyor.
+  function announce() {
+    const saved = state.saved || emptyProfile();
+    const ready = saved.experiences.length + saved.projects.length > 0;
+    window.dispatchEvent(new CustomEvent("ct:vault", { detail: { ready } }));
   }
 
   async function importCv(request) {
@@ -137,6 +145,7 @@
     setDirty(false);
     showImport(false);
     render();
+    announce();
     ui.toast("Kasana kaydedildi.");
   });
 
