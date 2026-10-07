@@ -86,13 +86,22 @@ namespace CvTailor.Api.Services
 
         // CV baştan sona kişisel veri. Kullanıcı silinince kasası, ilanları, ürettiği CV'ler,
         // kodları ve kullanım kayıtları cascade ile birlikte gidiyor.
+        // Tek istisna proje maddeleri: Proje → Madde ilişkisi NoAction (SQL Server iki cascade yolunu kabul etmiyor),
+        // önce onları silmezsem kullanıcı silme FK hatasıyla yarıda kalıyor.
         public async Task<(bool success, string? error)> DeleteAccountAsync(Guid userId, string? password)
         {
             var user = await _context.Users.AsNoTracking().FirstAsync(u => u.Id == userId);
             if (string.IsNullOrEmpty(password) || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 return (false, "Şifre yanlış.");
 
-            await _context.Users.Where(u => u.Id == userId).ExecuteDeleteAsync();
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                await _context.Achievements.Where(a => a.Project != null && a.Project.Profile!.UserId == userId).ExecuteDeleteAsync();
+                await _context.Users.Where(u => u.Id == userId).ExecuteDeleteAsync();
+                await transaction.CommitAsync();
+            });
             return (true, null);
         }
     }

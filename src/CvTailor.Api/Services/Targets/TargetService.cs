@@ -3,6 +3,8 @@ using CvTailor.Api.Data;
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Models;
 using CvTailor.Api.Services.Ai;
+using CvTailor.Api.Services.Cv;
+using CvTailor.Api.Services.Matching;
 using Microsoft.EntityFrameworkCore;
 
 namespace CvTailor.Api.Services.Targets
@@ -20,16 +22,48 @@ namespace CvTailor.Api.Services.Targets
         private readonly JobAnalyzer _analyzer;
         private readonly AiService _ai;
         private readonly UsageService _usage;
+        private readonly VaultService _vault;
+        private readonly RequirementMatcher _matcher;
+        private readonly ProfessionCatalog _professions;
         private readonly ILogger<TargetService> _logger;
 
-        public TargetService(CvTailorDbContext context, JobAnalyzer analyzer, AiService ai, UsageService usage, ILogger<TargetService> logger)
+        public TargetService(CvTailorDbContext context, JobAnalyzer analyzer, AiService ai, UsageService usage,
+            VaultService vault, RequirementMatcher matcher, ProfessionCatalog professions, ILogger<TargetService> logger)
         {
             _context = context;
             _analyzer = analyzer;
             _ai = ai;
             _usage = usage;
+            _vault = vault;
+            _matcher = matcher;
+            _professions = professions;
             _logger = logger;
         }
+
+        // İlan yoksa: meslek profilinden hedef. AI çağrısı yok, kota harcanmıyor.
+        public async Task<TargetOutcome> CreateFromProfessionAsync(Guid userId, CreateProfessionTargetRequest request, CancellationToken ct)
+        {
+            var profile = _professions.Find(request.ProfessionKey);
+            if (profile == null) return TargetOutcome.Fail("Meslek bulunamadı.");
+            var seniority = request.Seniority is { } s && ProfessionCatalog.SeniorityLabels.ContainsKey(s) ? s : "junior";
+
+            var analysis = ProfessionCatalog.BuildAnalysis(profile, seniority);
+            var target = new JobTarget
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Title = analysis.Title!,
+                ProfessionKey = profile.Key,
+                Seniority = seniority,
+                AnalysisJson = JsonSerializer.Serialize(analysis, Json),
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.JobTargets.Add(target);
+            await _context.SaveChangesAsync(ct);
+            return TargetOutcome.Ok(ToDto(target, analysis));
+        }
+
+        public List<ProfessionSummaryDto> Professions() => _professions.List();
 
         public async Task<TargetOutcome> CreateAsync(Guid userId, CreateTargetRequest request, CancellationToken ct)
         {
@@ -112,6 +146,15 @@ namespace CvTailor.Api.Services.Targets
             return target == null ? null : ToDto(target, Read(target));
         }
 
+        // AI kullanmıyor, kota harcamıyor. Kasa her an değişebildiği için saklanmıyor, her seferinde hesaplanıyor.
+        public async Task<MatchResult?> MatchAsync(Guid userId, Guid id, CancellationToken ct)
+        {
+            var target = await GetAsync(userId, id, ct);
+            if (target == null) return null;
+            var vault = await _vault.GetAsync(userId, ct);
+            return _matcher.Match(target.Analysis, vault.Profile, DateTime.UtcNow);
+        }
+
         // Hedefe bağlı CV'ler de cascade ile gidiyor.
         public async Task<bool> DeleteAsync(Guid userId, Guid id, CancellationToken ct) =>
             await _context.JobTargets.Where(t => t.Id == id && t.UserId == userId).ExecuteDeleteAsync(ct) > 0;
@@ -119,18 +162,24 @@ namespace CvTailor.Api.Services.Targets
         private static JobAnalysis Read(JobTarget target) =>
             string.IsNullOrEmpty(target.AnalysisJson) ? new JobAnalysis() : JsonSerializer.Deserialize<JobAnalysis>(target.AnalysisJson, Json) ?? new JobAnalysis();
 
-        private static TargetDto ToDto(JobTarget target, JobAnalysis analysis) => new()
+        private TargetDto ToDto(JobTarget target, JobAnalysis analysis)
         {
-            Id = target.Id,
-            Title = target.Title,
-            Company = target.Company,
-            Seniority = target.Seniority,
-            MustCount = analysis.Requirements.Count(r => r.Importance == "must"),
-            NiceCount = analysis.Requirements.Count(r => r.Importance == "nice"),
-            CreatedAt = DateTime.SpecifyKind(target.CreatedAt, DateTimeKind.Utc),
-            PostingText = target.PostingText,
-            Analysis = analysis
-        };
+            var profession = _professions.Find(target.ProfessionKey);
+            return new TargetDto
+            {
+                Id = target.Id,
+                Title = target.Title,
+                Company = target.Company,
+                Seniority = target.Seniority,
+                MustCount = analysis.Requirements.Count(r => r.Importance == "must"),
+                NiceCount = analysis.Requirements.Count(r => r.Importance == "nice"),
+                CreatedAt = DateTime.SpecifyKind(target.CreatedAt, DateTimeKind.Utc),
+                PostingText = target.PostingText,
+                ProfessionKey = target.ProfessionKey,
+                Analysis = analysis,
+                Guide = profession == null ? null : new ProfessionGuideDto { Tips = profession.Tips, Examples = profession.Examples }
+            };
+        }
 
         private static string? Clip(string? value)
         {

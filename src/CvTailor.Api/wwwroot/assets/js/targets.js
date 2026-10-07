@@ -1,4 +1,5 @@
-// "Yeni CV" (ilan yapıştırma ve çözümleme) ve "CV'lerim" (kayıtlı ilanlar) ekranları.
+// "Yeni CV" (ilan ya da meslek seçimi) ve "CV'lerim" (kayıtlı hedefler) ekranları.
+// Her hedefin detayında gereksinim–kanıt matrisi gösteriliyor; matris o anki kasaya göre sunucuda hesaplanıyor.
 (() => {
   "use strict";
 
@@ -9,24 +10,58 @@
 
   const CATEGORY = { technical: "Teknik", tool: "Araç", experience: "Deneyim", education: "Eğitim", language: "Dil", certification: "Sertifika", soft: "Yetkinlik", other: "Diğer" };
   const SENIORITY = { junior: "Junior", mid: "Mid-level", senior: "Senior" };
+  const STRENGTH = { strong: "Güçlü", weak: "Zayıf", missing: "Yok", unknown: "Ölçülemez" };
+  const EVIDENCE = { achievement: "İş maddesi", projectAchievement: "Proje maddesi", project: "Proje", experience: "Deneyim", education: "Eğitim", skill: "Beceri", certificate: "Sertifika", summary: "Özet", duration: "Süre" };
   const dateFormat = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 
-  // ---- Ortak: çözümlenmiş ilanın gösterimi ----
+  // ---- Hedef detayı ----
 
-  function requirementList(items, empty) {
-    if (!items.length) return `<p class="ct-muted">${empty}</p>`;
-    return `<ul class="ct-req-list">${items.map(r => `
-      <li>
-        <span class="ct-req-text">${esc(r.text)}</span>
-        <span class="ct-req-meta"><span class="ct-tag">${CATEGORY[r.category] || "Diğer"}</span>${r.terms?.length ? `<span>${r.terms.map(esc).join(", ")}</span>` : ""}</span>
-      </li>`).join("")}</ul>`;
+  function renderMatch(match) {
+    const order = { missing: 0, weak: 1, strong: 2, unknown: 3 };
+    const rows = [...match.items].sort((a, b) => (a.importance === b.importance ? 0 : a.importance === "must" ? -1 : 1) || order[a.strength] - order[b.strength]);
+    return `
+      <section class="ct-match">
+        <div class="ct-verdict">
+          <strong>${esc(match.verdict)}</strong>
+          <p>${esc(match.advice)}</p>
+          <div class="ct-meter" aria-hidden="true">
+            <i class="is-strong" style="flex:${match.mustStrong}"></i><i class="is-weak" style="flex:${match.mustWeak}"></i><i class="is-missing" style="flex:${match.mustMissing}"></i>
+          </div>
+        </div>
+        <h3>Gereksinimler ve kasandaki kanıtlar</h3>
+        <ul class="ct-match-list">${rows.map(item => `
+          <li class="is-${item.strength}">
+            <div class="ct-match-head">
+              <span class="ct-badge is-${item.strength}">${STRENGTH[item.strength]}</span>
+              <span class="ct-req-text">${esc(item.text)}</span>
+              <span class="ct-tag">${item.importance === "must" ? "Zorunlu" : "Tercih"}</span>
+              <span class="ct-tag">${CATEGORY[item.category] || "Diğer"}</span>
+            </div>
+            <p class="ct-match-note">${esc(item.note)}</p>
+            ${item.evidence.length ? `<ul class="ct-evidence">${item.evidence.map(e => `
+              <li><span class="ct-evidence-kind">${EVIDENCE[e.kind] || e.kind}</span> ${esc(e.text)}${e.where && e.kind !== "experience" ? ` <span class="ct-muted">· ${esc(e.where)}</span>` : ""}${e.term && e.term.includes("→") ? ` <span class="ct-muted">(${esc(e.term)})</span>` : ""}</li>`).join("")}</ul>` : ""}
+          </li>`).join("")}
+        </ul>
+      </section>`;
   }
 
-  function renderTarget(t, { withDelete = false } = {}) {
+  function renderGuide(guide) {
+    return `
+      <section class="ct-guide">
+        <h3>Bu meslekte CV yazarken</h3>
+        <ul class="ct-plain-list">${guide.tips.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+        <div class="ct-examples">${guide.examples.map(e => `
+          <div class="ct-example">
+            <p class="ct-example-bad">${esc(e.bad)}</p>
+            <p class="ct-example-good">${esc(e.good)}</p>
+            <p class="ct-hint">${esc(e.why)}</p>
+          </div>`).join("")}</div>
+      </section>`;
+  }
+
+  function renderTarget(t, match, { withDelete = false } = {}) {
     const a = t.analysis;
-    const must = a.requirements.filter(r => r.importance === "must");
-    const nice = a.requirements.filter(r => r.importance === "nice");
-    const meta = [t.company, SENIORITY[t.seniority], a.yearsOfExperience != null ? `en az ${a.yearsOfExperience} yıl` : null, dateFormat.format(new Date(t.createdAt))].filter(Boolean);
+    const meta = [t.company, SENIORITY[t.seniority], a.yearsOfExperience != null ? `en az ${a.yearsOfExperience} yıl` : null, t.professionKey ? "Meslek profili" : null, dateFormat.format(new Date(t.createdAt))].filter(Boolean);
     return `
       <article class="ct-card ct-target">
         <header class="ct-target-head">
@@ -38,21 +73,53 @@
         </header>
         ${t.notice ? `<div class="ct-busy">${esc(t.notice)}</div>` : ""}
         ${a.summary ? `<p>${esc(a.summary)}</p>` : ""}
-        <div class="ct-req-columns">
-          <section><h3>Zorunlu <span>${must.length}</span></h3>${requirementList(must, "İlanda zorunlu nitelik belirtilmemiş.")}</section>
-          <section><h3>Tercih sebebi <span>${nice.length}</span></h3>${requirementList(nice, "İlanda tercih sebebi belirtilmemiş.")}</section>
-        </div>
+        ${match ? renderMatch(match) : `<p class="ct-muted">Eşleşme hesaplanamadı.</p>`}
+        ${t.guide ? renderGuide(t.guide) : ""}
         ${a.responsibilities.length ? `<section><h3>İş tanımı</h3><ul class="ct-plain-list">${a.responsibilities.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
         ${a.keywords.length ? `<section><h3>Anahtar kelimeler</h3><p class="ct-hint">İşe alım sistemlerinin CV'nde arayacağı terimler.</p><div class="ct-chips is-static">${a.keywords.map(k => `<span class="ct-chip">${esc(k)}</span>`).join("")}</div></section>` : ""}
         ${t.postingText ? `<details class="ct-paste"><summary>İlan metnini göster</summary><pre class="ct-posting">${esc(t.postingText)}</pre></details>` : ""}
       </article>`;
   }
 
-  // ---- Yeni CV ----
+  async function loadMatch(id) {
+    const { ok, data } = await session.api.get(`/api/targets/${id}/match`);
+    return ok ? data : null;
+  }
+
+  async function showResult(target) {
+    const result = $("#ct-new-result");
+    result.innerHTML = renderTarget(target, await loadMatch(target.id));
+    result.hidden = false;
+    result.scrollIntoView({ block: "start" });
+    loadList();
+  }
+
+  // ---- Yeni CV: ilan ya da meslek ----
+
+  let mode = "posting";
+  let vaultReady = false;
+
+  function showForms() {
+    $("#ct-new-empty").hidden = vaultReady;
+    $("#ct-new-tabs").hidden = !vaultReady;
+    $("#ct-target-form").hidden = !vaultReady || mode !== "posting";
+    $("#ct-profession-form").hidden = !vaultReady || mode !== "profession";
+  }
 
   window.addEventListener("ct:vault", event => {
-    $("#ct-new-empty").hidden = event.detail.ready;
-    $("#ct-target-form").hidden = !event.detail.ready;
+    vaultReady = event.detail.ready;
+    showForms();
+  });
+
+  $("#ct-new-tabs").addEventListener("click", event => {
+    const tab = event.target.closest("[data-mode]");
+    if (!tab) return;
+    mode = tab.dataset.mode;
+    document.querySelectorAll("#ct-new-tabs [data-mode]").forEach(b => {
+      b.classList.toggle("is-active", b === tab);
+      b.setAttribute("aria-selected", b === tab);
+    });
+    showForms();
   });
 
   $("#ct-target-form").addEventListener("submit", async event => {
@@ -77,12 +144,35 @@
       return;
     }
     event.target.reset();
-    const result = $("#ct-new-result");
-    result.innerHTML = renderTarget(data);
-    result.hidden = false;
-    result.scrollIntoView({ behavior: "smooth", block: "start" });
-    loadList();
+    await showResult(data);
     ui.toast("İlan çözümlendi ve CV'lerim'e eklendi.");
+  });
+
+  let professions = [];
+  async function loadProfessions() {
+    const { ok, data } = await session.api.get("/api/targets/professions");
+    if (!ok) return;
+    professions = data;
+    $("#ct-profession").innerHTML = data.map(p => `<option value="${esc(p.key)}">${esc(p.title)}</option>`).join("");
+    showProfessionSummary();
+  }
+  function showProfessionSummary() {
+    $("#ct-profession-summary").textContent = professions.find(p => p.key === $("#ct-profession").value)?.summary || "";
+  }
+  $("#ct-profession").addEventListener("change", showProfessionSummary);
+
+  $("#ct-profession-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = $("#ct-profession-submit");
+    button.disabled = true;
+    const { ok, data } = await session.api.post("/api/targets/profession", {
+      professionKey: $("#ct-profession").value,
+      seniority: document.querySelector("[name=ct-seniority]:checked")?.value
+    });
+    button.disabled = false;
+    if (!ok) { ui.toast(data?.message || "Hedef oluşturulamadı.", "error"); return; }
+    await showResult(data);
+    ui.toast("Hedef oluşturuldu ve CV'lerim'e eklendi.");
   });
 
   // ---- CV'lerim ----
@@ -99,12 +189,13 @@
   }
 
   async function openTarget(id) {
-    const { ok, data } = await session.api.get(`/api/targets/${id}`);
+    const [{ ok, data }, match] = await Promise.all([session.api.get(`/api/targets/${id}`), loadMatch(id)]);
     if (!ok) { ui.toast(data?.message || "İlan açılamadı.", "error"); return; }
     $("#ct-target-list").hidden = true;
     const detail = $("#ct-cvs-detail");
-    detail.innerHTML = `<button class="ct-link-button" type="button" data-back>← Bütün ilanlar</button>${renderTarget(data, { withDelete: true })}`;
+    detail.innerHTML = `<button class="ct-link-button" type="button" data-back>← Bütün hedefler</button>${renderTarget(data, match, { withDelete: true })}`;
     detail.hidden = false;
+    window.scrollTo({ top: 0 });
   }
 
   function closeTarget() {
@@ -120,16 +211,17 @@
   $("#ct-cvs-detail").addEventListener("click", async event => {
     if (event.target.closest("[data-back]")) { closeTarget(); return; }
     const del = event.target.closest("[data-delete-target]");
-    if (!del || !confirm("Bu ilan ve onun için hazırladığın CV'ler silinsin mi?")) return;
+    if (!del || !confirm("Bu hedef ve onun için hazırladığın CV'ler silinsin mi?")) return;
     const { ok, data } = await session.api.del(`/api/targets/${del.dataset.deleteTarget}`);
     if (!ok) { ui.toast(data?.message || "Silinemedi.", "error"); return; }
     closeTarget();
     loadList();
-    ui.toast("İlan silindi.");
+    ui.toast("Hedef silindi.");
   });
 
   // Başka ekrandan CV'lerim'e dönünce liste görünsün, açık kalan detay değil.
   window.addEventListener("hashchange", () => { if (location.hash === "#cvs") closeTarget(); });
 
+  loadProfessions();
   loadList();
 })();

@@ -37,6 +37,34 @@ namespace CvTailor.Api.Dtos
         public string? Company { get; set; }
     }
 
+    // İlan yoksa: meslek + seviye
+    public class CreateProfessionTargetRequest
+    {
+        public string? ProfessionKey { get; set; }
+        public string? Seniority { get; set; }
+    }
+
+    public class ProfessionSummaryDto
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Summary { get; set; } = string.Empty;
+    }
+
+    // Meslek profillerindeki öğretici kısım: o meslekte CV yazarken dikkat edilecekler.
+    public class ProfessionGuideDto
+    {
+        public List<string> Tips { get; set; } = new();
+        public List<BulletExample> Examples { get; set; } = new();
+    }
+
+    public class BulletExample
+    {
+        public string Bad { get; set; } = string.Empty;
+        public string Good { get; set; } = string.Empty;
+        public string Why { get; set; } = string.Empty;
+    }
+
     public class TargetSummaryDto
     {
         public Guid Id { get; set; }
@@ -51,7 +79,10 @@ namespace CvTailor.Api.Dtos
     public class TargetDto : TargetSummaryDto
     {
         public string? PostingText { get; set; }
+        public string? ProfessionKey { get; set; }
         public JobAnalysis Analysis { get; set; } = new();
+        // Hedef meslek modunda oluşturulduysa o mesleğin ipuçları ve örnek maddeleri.
+        public ProfessionGuideDto? Guide { get; set; }
         // Sadece oluşturma cevabında dolu: AI kullanılmadıysa nedenini söylüyor.
         public bool UsedAi { get; set; }
         public string? Notice { get; set; }

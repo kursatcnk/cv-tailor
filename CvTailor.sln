@@ -7,6 +7,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CvTailor.Api", "src\CvTailor.Api\CvTailor.Api.csproj", "{838D17FC-2601-4D84-80DC-A7DD8F85DBCD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CvTailor.Tests", "tests\CvTailor.Tests\CvTailor.Tests.csproj", "{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,11 +33,24 @@ Global
 		{838D17FC-2601-4D84-80DC-A7DD8F85DBCD}.Release|x64.Build.0 = Release|Any CPU
 		{838D17FC-2601-4D84-80DC-A7DD8F85DBCD}.Release|x86.ActiveCfg = Release|Any CPU
 		{838D17FC-2601-4D84-80DC-A7DD8F85DBCD}.Release|x86.Build.0 = Release|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Debug|x64.Build.0 = Debug|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Debug|x86.Build.0 = Debug|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Release|x64.ActiveCfg = Release|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Release|x64.Build.0 = Release|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Release|x86.ActiveCfg = Release|Any CPU
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{838D17FC-2601-4D84-80DC-A7DD8F85DBCD} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{5AAB54F6-4B51-41CE-AD57-64A95FF3AF36} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

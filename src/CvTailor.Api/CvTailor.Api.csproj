@@ -24,4 +24,9 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
   </ItemGroup>
 
+  <!-- Eş anlamlılar sözlüğü ve meslek profilleri; uygulama çalışırken çıktı klasöründen okunuyor. -->
+  <ItemGroup>
+    <Content Update="Knowledge\**\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

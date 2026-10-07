@@ -1,0 +1,47 @@
+{
+  "key": "muhasebe-uzmani",
+  "title": "Muhasebe Uzmanı",
+  "summary": "Şirketin ön muhasebe, genel muhasebe ve vergi süreçlerini yürüten uzman.",
+  "sections": ["experience", "education", "skills", "certificates", "projects"],
+  "requirements": [
+    { "text": "İşletme, İktisat, Maliye veya Muhasebe bölümünden mezuniyet", "importance": "must", "category": "education", "terms": ["İşletme", "İktisat", "Maliye", "Muhasebe"] },
+    { "text": "Ön muhasebe ve cari hesap takibi", "importance": "must", "category": "experience", "terms": ["ön muhasebe", "cari hesap", "cari"] },
+    { "text": "Genel muhasebe kayıtları ve mizan kontrolü", "importance": "must", "category": "experience", "terms": ["genel muhasebe", "mizan", "yevmiye", "muhasebe kayıt"], "levels": ["mid", "senior"] },
+    { "text": "KDV, muhtasar ve diğer beyannamelerin hazırlanması", "importance": "must", "category": "experience", "terms": ["beyanname", "KDV", "muhtasar"], "levels": ["mid", "senior"] },
+    { "text": "Beyanname hazırlığına destek", "importance": "nice", "category": "experience", "terms": ["beyanname", "KDV", "muhtasar"], "levels": ["junior"] },
+    { "text": "Banka mutabakatı ve ödeme takibi", "importance": "must", "category": "experience", "terms": ["mutabakat", "banka", "ödeme takibi"] },
+    { "text": "Logo, Mikro, Netsis veya SAP gibi bir ERP programı", "importance": "must", "category": "tool", "terms": ["Logo", "Mikro", "SAP", "ERP"] },
+    { "text": "İleri düzey Excel (pivot tablo, düşeyara)", "importance": "must", "category": "tool", "terms": ["Excel", "pivot", "düşeyara", "VLOOKUP"] },
+    { "text": "e-Fatura, e-Arşiv ve e-Defter süreçleri", "importance": "nice", "category": "experience", "terms": ["e-Fatura", "e-Defter"] },
+    { "text": "Bordro ve SGK işlemlerine hakimiyet", "importance": "nice", "category": "experience", "terms": ["bordro", "SGK"] },
+    { "text": "Ay sonu ve yıl sonu kapanış işlemleri", "importance": "must", "category": "experience", "terms": ["ay sonu", "yıl sonu", "kapanış", "bilanço", "gelir tablosu"], "levels": ["senior"] },
+    { "text": "SMMM stajını tamamlamış ya da SMMM ruhsatlı", "importance": "nice", "category": "certification", "terms": ["SMMM"] },
+    { "text": "En az 2 yıl muhasebe deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["mid"] },
+    { "text": "En az 5 yıl muhasebe deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["senior"] },
+    { "text": "Vergi mevzuatını takip etme", "importance": "nice", "category": "experience", "terms": ["vergi mevzuatı", "mevzuat", "Vergi Usul Kanunu", "VUK"] }
+  ],
+  "keywords": ["Muhasebe", "ön muhasebe", "cari hesap", "beyanname", "KDV", "Logo", "Excel", "mutabakat", "e-Fatura"],
+  "tips": [
+    "Kullandığın programları sürümüyle yaz (Logo Tiger 3, Mikro Jump); ilanlar programa göre aday arıyor.",
+    "Hacim ver: kaç cari hesap, aylık kaç fatura, kaç şirketin defteri. \"Cari hesap takibi yaptım\" ile \"350 cari hesabın aylık mutabakatını yaptım\" aynı şey değil.",
+    "Hata azaltma, süre kısaltma ve denetimden temiz çıkma muhasebede en değerli sonuçlardır; varsa mutlaka yaz.",
+    "SMMM stajı ya da ruhsatı, YMM'de çalışma ve vergi mevzuatı eğitimleri sertifikalar bölümünde ayrıca görünmeli."
+  ],
+  "examples": [
+    {
+      "bad": "Cari hesapları takip ettim.",
+      "good": "350 cari hesabın aylık mutabakatını Logo Tiger'da yürüttüm; vadesi geçen alacakları 3 ayda %22 azalttım.",
+      "why": "Hacim, kullanılan program ve somut bir sonuç var."
+    },
+    {
+      "bad": "Beyannameleri hazırladım.",
+      "good": "3 grup şirketinin aylık KDV ve muhtasar beyannamelerini hazırladım; 2 yıl boyunca hiçbir beyanname düzeltme gerektirmedi.",
+      "why": "Sorumluluğun kapsamını ve hatasız çalıştığını gösteriyor."
+    },
+    {
+      "bad": "Excel'i iyi kullanırım.",
+      "good": "Banka hareketlerini cari kodlarla eşleştiren bir Excel şablonu hazırladım; aylık mutabakat süresi 2 günden yarım güne indi.",
+      "why": "Beceriyi iddia etmek yerine onunla ne kazandırdığını anlatıyor."
+    }
+  ]
+}

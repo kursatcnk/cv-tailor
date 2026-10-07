@@ -27,6 +27,14 @@ namespace CvTailor.Api.Controllers
             return target == null ? NotFound(MessageResponse.Fail("İlan bulunamadı.")) : Ok(target);
         }
 
+        // Gereksinim–kanıt matrisi: o anki kasaya göre hesaplanıyor.
+        [HttpGet("{id:guid}/match")]
+        public async Task<ActionResult<MatchResult>> Match(Guid id, CancellationToken cancellationToken)
+        {
+            var match = await _targets.MatchAsync(User.GetUserId(), id, cancellationToken);
+            return match == null ? NotFound(MessageResponse.Fail("İlan bulunamadı.")) : Ok(match);
+        }
+
         [HttpPost]
         [EnableRateLimiting("ai")]
         public async Task<IActionResult> Create([FromBody] CreateTargetRequest request, CancellationToken cancellationToken)
@@ -36,6 +44,17 @@ namespace CvTailor.Api.Controllers
             if (outcome.Usage != null)
                 return StatusCode(StatusCodes.Status429TooManyRequests, new QuotaExceededResponse { Message = outcome.Error!, Usage = outcome.Usage });
             return BadRequest(MessageResponse.Fail(outcome.Error!));
+        }
+
+        [HttpGet("professions")]
+        public ActionResult<List<ProfessionSummaryDto>> Professions() => Ok(_targets.Professions());
+
+        // AI kullanmadığı için "ai" rate limit'i yok.
+        [HttpPost("profession")]
+        public async Task<IActionResult> CreateFromProfession([FromBody] CreateProfessionTargetRequest request, CancellationToken cancellationToken)
+        {
+            var outcome = await _targets.CreateFromProfessionAsync(User.GetUserId(), request, cancellationToken);
+            return outcome.Target != null ? Ok(outcome.Target) : BadRequest(MessageResponse.Fail(outcome.Error!));
         }
 
         [HttpDelete("{id:guid}")]

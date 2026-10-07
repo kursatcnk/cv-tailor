@@ -91,13 +91,33 @@
       <section class="ct-view" data-view="new" hidden>
         <header class="ct-view-head">
           <h1>Yeni CV</h1>
-          <p>Başvuracağın ilanı yapıştır. İlanın ne istediği madde madde çıkarılır; CV'n bu listeye göre hazırlanır.</p>
+          <p>Başvuracağın ilanı yapıştır ya da ilan yoksa meslek ve seviye seç. Gereksinimler madde madde çıkarılır ve kasandaki deneyimlerle eşleştirilir.</p>
         </header>
         <div class="ct-empty" id="ct-new-empty" hidden>
           <strong>Önce kasanı doldur.</strong>
           <p>İlana göre CV hazırlamak için kasanda en az bir deneyim ya da proje olmalı.</p>
           <a class="ct-button ct-button-secondary" href="#vault">Kasaya git</a>
         </div>
+        <div class="ct-tabs" id="ct-new-tabs" role="tablist" hidden>
+          <button type="button" role="tab" class="is-active" data-mode="posting" aria-selected="true">İlanım var</button>
+          <button type="button" role="tab" data-mode="profession" aria-selected="false">İlan yok, meslek seç</button>
+        </div>
+        <form class="ct-card ct-target-form" id="ct-profession-form" novalidate hidden>
+          <label class="ct-field is-wide"><span>Meslek</span>
+            <select class="ct-input" id="ct-profession"></select>
+          </label>
+          <p class="ct-hint" id="ct-profession-summary"></p>
+          <fieldset class="ct-segmented">
+            <legend>Seviye</legend>
+            <label><input type="radio" name="ct-seniority" value="junior" checked> Junior</label>
+            <label><input type="radio" name="ct-seniority" value="mid"> Mid-level</label>
+            <label><input type="radio" name="ct-seniority" value="senior"> Senior</label>
+          </fieldset>
+          <p class="ct-hint">Gereksinimler bu meslek için elle hazırlanmış profilden gelir; AI hakkın harcanmaz.</p>
+          <div class="ct-actions">
+            <button class="ct-button" type="submit" id="ct-profession-submit">Eşleşmeyi gör</button>
+          </div>
+        </form>
         <form class="ct-card ct-target-form" id="ct-target-form" novalidate hidden>
           <label class="ct-field is-wide"><span>İlan metni</span>
             <textarea class="ct-textarea" id="ct-posting" rows="12" placeholder="İlanın tamamını yapıştır: pozisyon, iş tanımı, aranan nitelikler, tercih sebepleri..."></textarea>

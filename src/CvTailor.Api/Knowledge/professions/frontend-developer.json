@@ -1,0 +1,47 @@
+{
+  "key": "frontend-developer",
+  "title": "Frontend Developer",
+  "summary": "Web arayüzlerini geliştiren, kullanıcı deneyimi ve performansla ilgilenen yazılımcı.",
+  "sections": ["projects", "experience", "skills", "education", "certificates"],
+  "requirements": [
+    { "text": "HTML ve CSS'e hakimiyet", "importance": "must", "category": "technical", "terms": ["HTML", "CSS"] },
+    { "text": "JavaScript bilgisi", "importance": "must", "category": "technical", "terms": ["JavaScript"] },
+    { "text": "TypeScript deneyimi", "importance": "nice", "category": "technical", "terms": ["TypeScript"], "levels": ["junior"] },
+    { "text": "TypeScript ile proje geliştirme", "importance": "must", "category": "technical", "terms": ["TypeScript"], "levels": ["mid", "senior"] },
+    { "text": "Modern bir framework (React, Vue, Angular)", "importance": "must", "category": "technical", "terms": ["React", "Vue", "Angular"] },
+    { "text": "Responsive (mobil uyumlu) arayüz geliştirme", "importance": "must", "category": "technical", "terms": ["responsive", "mobil uyumlu"] },
+    { "text": "REST API'lerle veri alışverişi", "importance": "must", "category": "technical", "terms": ["REST", "API"] },
+    { "text": "Git ile sürüm kontrolü", "importance": "must", "category": "tool", "terms": ["Git"] },
+    { "text": "Tasarım araçlarından (Figma) arayüz çıkarma", "importance": "nice", "category": "tool", "terms": ["Figma"] },
+    { "text": "Durum yönetimi (Redux, Zustand, Pinia vb.)", "importance": "nice", "category": "technical", "terms": ["Redux", "Zustand", "Pinia", "Vuex", "state management"], "levels": ["mid", "senior"] },
+    { "text": "Frontend testleri (Jest, Testing Library, Cypress)", "importance": "nice", "category": "technical", "terms": ["Jest", "Testing Library", "Cypress", "Playwright"] },
+    { "text": "Web performansı ve erişilebilirlik bilgisi", "importance": "nice", "category": "technical", "terms": ["Lighthouse", "erişilebilirlik", "accessibility", "Core Web Vitals", "performans"], "levels": ["mid", "senior"] },
+    { "text": "En az 2 yıl frontend geliştirme deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["mid"] },
+    { "text": "En az 5 yıl frontend geliştirme deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["senior"] },
+    { "text": "Teknik dokümantasyonu okuyabilecek düzeyde İngilizce", "importance": "nice", "category": "language", "terms": ["İngilizce"] }
+  ],
+  "keywords": ["Frontend", "JavaScript", "TypeScript", "React", "HTML", "CSS", "responsive", "Git"],
+  "tips": [
+    "Frontend'de en güçlü kanıt çalışan bir arayüzdür: canlı demo ya da GitHub linki olan projeleri öne al.",
+    "Hangi framework'le ne yaptığını yaz; \"React biliyorum\" yerine React'le kurduğun ekranı ve kullanıcıya etkisini anlat.",
+    "Performans (yüklenme süresi, Lighthouse puanı) ve erişilebilirlik iyileştirmeleri ölçülebilir ve dikkat çekici sonuçlardır.",
+    "Tasarımcıyla ya da backend ekibiyle nasıl çalıştığını gösteren bir madde, ekip içinde çalışabildiğini kanıtlar."
+  ],
+  "examples": [
+    {
+      "bad": "Şirketin web sitesini yaptım.",
+      "good": "React ve TypeScript ile kurumsal sitenin 12 sayfasını yeniden yazdım; Lighthouse performans puanını 54'ten 91'e çıkardım.",
+      "why": "Kapsam, teknoloji ve ölçülebilir sonuç bir arada."
+    },
+    {
+      "bad": "Mobil uyumlu tasarımlar yaptım.",
+      "good": "Ödeme akışını mobil için yeniden düzenledim; mobilde sepeti terk etme oranı 3 ayda %18 azaldı.",
+      "why": "Yaptığın işin kullanıcıya ve işe etkisini gösteriyor."
+    },
+    {
+      "bad": "Figma tasarımlarını koda döktüm.",
+      "good": "Figma'daki 40 bileşenlik tasarım sistemini Storybook'ta belgelenmiş React bileşenlerine çevirdim; yeni ekranların geliştirme süresi yarıya indi.",
+      "why": "Sıradan bir görevi somut bir çıktıya ve etkisine bağlıyor."
+    }
+  ]
+}

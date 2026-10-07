@@ -13,6 +13,7 @@ using CvTailor.Api.Data;
 using CvTailor.Api.Services;
 using CvTailor.Api.Services.Ai;
 using CvTailor.Api.Services.Cv;
+using CvTailor.Api.Services.Matching;
 using CvTailor.Api.Services.Targets;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -125,6 +126,10 @@ builder.Services.AddScoped<CvImportService>();
 builder.Services.AddScoped<VaultService>();
 builder.Services.AddSingleton<JobAnalyzer>();
 builder.Services.AddScoped<TargetService>();
+// Sözlük açılışta bir kez okunuyor; dosya bozuksa uygulama ilk istekte değil burada hata versin.
+builder.Services.AddSingleton(SkillDictionary.Load(Path.Combine(AppContext.BaseDirectory, "Knowledge", "synonyms.json")));
+builder.Services.AddSingleton<RequirementMatcher>();
+builder.Services.AddSingleton(ProfessionCatalog.Load(Path.Combine(AppContext.BaseDirectory, "Knowledge", "professions")));
 builder.Services.AddScoped<OneTimeCodeService>();
 builder.Services.AddHostedService<CleanupService>();
 

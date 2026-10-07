@@ -1,0 +1,46 @@
+{
+  "key": "satis-temsilcisi",
+  "title": "Satış Temsilcisi",
+  "summary": "Yeni müşteri bulan, mevcut müşterileri yöneten ve satış hedeflerinden sorumlu temsilci.",
+  "sections": ["experience", "skills", "education", "certificates", "projects"],
+  "requirements": [
+    { "text": "Üniversite mezuniyeti (tercihen İşletme, İktisat)", "importance": "nice", "category": "education", "terms": ["İşletme", "İktisat", "Pazarlama", "Lisans"] },
+    { "text": "Satış ya da müşteri ilişkileri deneyimi", "importance": "must", "category": "experience", "terms": ["satış", "müşteri ilişkileri", "müşteri temsilcisi", "portföy"] },
+    { "text": "Satış hedeflerini tutturma geçmişi", "importance": "must", "category": "experience", "terms": ["hedef", "kota", "ciro", "satış adedi"] },
+    { "text": "Yeni müşteri bulma (saha ya da telefonla)", "importance": "must", "category": "experience", "terms": ["yeni müşteri", "saha", "soğuk arama", "potansiyel müşteri", "müşteri ziyareti"] },
+    { "text": "Kurumsal (B2B) satış deneyimi", "importance": "nice", "category": "experience", "terms": ["B2B", "bayi", "distribütör"], "levels": ["mid", "senior"] },
+    { "text": "CRM programı kullanımı", "importance": "nice", "category": "tool", "terms": ["CRM"] },
+    { "text": "Teklif hazırlama ve fiyat görüşmesi", "importance": "must", "category": "experience", "terms": ["teklif", "pazarlık", "fiyat", "sözleşme"], "levels": ["mid", "senior"] },
+    { "text": "MS Office, özellikle Excel ve PowerPoint", "importance": "must", "category": "tool", "terms": ["MS Office", "Excel", "PowerPoint"] },
+    { "text": "B sınıfı ehliyet ve aktif araç kullanımı", "importance": "must", "category": "other", "terms": ["ehliyet"] },
+    { "text": "Seyahat engeli olmaması", "importance": "nice", "category": "other", "terms": [] },
+    { "text": "En az 2 yıl satış deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["mid"] },
+    { "text": "En az 5 yıl satış deneyimi ve ekip yönetimi", "importance": "must", "category": "experience", "terms": ["ekip", "bölge"], "levels": ["senior"] },
+    { "text": "İkna ve iletişim becerisi", "importance": "must", "category": "soft", "terms": [] },
+    { "text": "İngilizce (ihracat ya da yabancı müşteri için)", "importance": "nice", "category": "language", "terms": ["İngilizce"] }
+  ],
+  "keywords": ["Satış", "hedef", "müşteri", "portföy", "CRM", "B2B", "teklif", "ciro"],
+  "tips": [
+    "Satış CV'si rakamla okunur: hedefin yüzde kaçını tutturdun, kaç yeni müşteri kazandın, cironu ne kadar büyüttün.",
+    "Ne sattığını ve kime sattığını yaz (sektör, ürün, ortalama sipariş tutarı); işveren aynı müşteri tipini tanıyıp tanımadığına bakar.",
+    "Ödül, prim ve sıralama (\"bölgede 14 temsilci arasında 2.\") güçlü kanıtlardır.",
+    "\"İletişimi güçlü\" yazmak yerine zor bir müşteriyi nasıl kazandığını anlatan bir madde yaz."
+  ],
+  "examples": [
+    {
+      "bad": "Müşterilerle ilgilendim ve satış yaptım.",
+      "good": "Ege bölgesinde 85 bayilik portföyü yönettim; 2025'te yıllık hedefin %118'ine ulaştım.",
+      "why": "Portföyün büyüklüğü ve hedefe göre sonuç belli."
+    },
+    {
+      "bad": "Yeni müşteriler buldum.",
+      "good": "Soğuk arama ve saha ziyaretleriyle 6 ayda 23 yeni kurumsal müşteri kazandım; bunlar bölge cirosunun %15'ini oluşturdu.",
+      "why": "Yöntemi, sayıyı ve işe etkisini söylüyor."
+    },
+    {
+      "bad": "İkna kabiliyetim yüksektir.",
+      "good": "Rakibe geçmek üzere olan en büyük 3 müşteriyle yeni ödeme planı üzerinde anlaşarak yıllık 4,2 milyon TL'lik ciroyu korudum.",
+      "why": "Yetkinliği somut bir başarıyla gösteriyor."
+    }
+  ]
+}

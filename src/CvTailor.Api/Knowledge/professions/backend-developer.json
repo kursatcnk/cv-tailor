@@ -1,0 +1,50 @@
+{
+  "key": "backend-developer",
+  "title": "Backend Developer",
+  "summary": "Sunucu tarafı servisler, API'ler ve veritabanı geliştiren yazılımcı.",
+  "sections": ["experience", "projects", "skills", "education", "certificates"],
+  "requirements": [
+    { "text": "Bilgisayar Mühendisliği veya ilgili bölümden mezuniyet", "importance": "nice", "category": "education", "terms": ["Bilgisayar Mühendisliği", "Yazılım Mühendisliği", "Yönetim Bilişim Sistemleri"] },
+    { "text": "En az 1 backend dili (C#, Java, Python, Node.js, Go)", "importance": "must", "category": "technical", "terms": ["C#", "Java", "Python", "Node.js", "Go"] },
+    { "text": "REST API tasarlama ve geliştirme", "importance": "must", "category": "technical", "terms": ["REST", "API"] },
+    { "text": "İlişkisel veritabanı ve SQL bilgisi", "importance": "must", "category": "technical", "terms": ["SQL", "MSSQL", "PostgreSQL", "MySQL"] },
+    { "text": "Bir ORM ile çalışma deneyimi", "importance": "nice", "category": "technical", "terms": ["Entity Framework", "Hibernate", "Dapper", "Prisma"] },
+    { "text": "Git ile sürüm kontrolü", "importance": "must", "category": "tool", "terms": ["Git"] },
+    { "text": "Birim testi yazma alışkanlığı", "importance": "nice", "category": "technical", "terms": ["birim testi", "xUnit", "NUnit", "JUnit", "pytest"], "levels": ["junior"] },
+    { "text": "Birim ve entegrasyon testi yazma", "importance": "must", "category": "technical", "terms": ["birim testi", "entegrasyon testi", "xUnit", "NUnit", "JUnit", "pytest"], "levels": ["mid", "senior"] },
+    { "text": "Docker ile uygulama paketleme", "importance": "nice", "category": "tool", "terms": ["Docker"] },
+    { "text": "CI/CD süreçlerine aşinalık", "importance": "nice", "category": "technical", "terms": ["CI/CD"] },
+    { "text": "Bulut platformu deneyimi (Azure, AWS, GCP)", "importance": "nice", "category": "technical", "terms": ["Azure", "AWS", "GCP"], "levels": ["mid", "senior"] },
+    { "text": "Önbellek ve mesaj kuyruğu kullanımı", "importance": "nice", "category": "technical", "terms": ["Redis", "mesaj kuyruğu"], "levels": ["mid", "senior"] },
+    { "text": "En az 2 yıl backend geliştirme deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["mid"] },
+    { "text": "En az 5 yıl backend geliştirme deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["senior"] },
+    { "text": "Sistem tasarımı ve ölçeklenebilir mimari", "importance": "must", "category": "technical", "terms": ["mikroservis", "sistem tasarımı", "ölçeklenebilir", "mimari"], "levels": ["senior"] },
+    { "text": "Teknik dokümantasyonu okuyabilecek düzeyde İngilizce", "importance": "nice", "category": "language", "terms": ["İngilizce"] },
+    { "text": "Ekip içinde kod incelemesi yapabilme", "importance": "nice", "category": "soft", "terms": ["kod incelemesi", "code review"], "levels": ["mid", "senior"] }
+  ],
+  "keywords": ["Backend", "API", "REST", "SQL", "Git", "Docker", "birim testi", "CI/CD"],
+  "tips": [
+    "Teknoloji listesi değil, o teknolojiyle ne yaptığın önemli. \"C# biliyorum\" yerine C# ile yazdığın servisi ve sonucunu anlat.",
+    "Performans, hata oranı, yanıt süresi, kullanıcı ya da istek sayısı gibi ölçülebilir sonuçlar backend CV'sinde en güçlü kanıttır.",
+    "İş deneyimin azsa projeler bölümü üstte olsun; GitHub linki ve README'si düzgün bir proje, sıradan bir stajdan daha çok şey anlatır.",
+    "Junior pozisyonlarda bile Git, SQL ve test bilgisini bir maddede göstermek seni diğer adaylardan ayırır.",
+    "Becerileri kategorilere ayır (diller, framework'ler, veritabanları, araçlar); tek uzun liste okunmaz."
+  ],
+  "examples": [
+    {
+      "bad": "Backend geliştirmelerinde görev aldım.",
+      "good": "ASP.NET Core ile sipariş servisinin 6 REST ucunu geliştirdim; Entity Framework sorgularını düzenleyerek liste ekranının yanıt süresini 2,1 sn'den 0,6 sn'ye indirdim.",
+      "why": "Ne yaptığını (6 uç), hangi teknolojiyle yaptığını ve ölçülebilir sonucu söylüyor."
+    },
+    {
+      "bad": "Veritabanı işlemleri yaptım.",
+      "good": "SQL Server'da eksik index'leri bularak gece çalışan rapor işinin süresini 40 dakikadan 9 dakikaya düşürdüm.",
+      "why": "\"İşlem yaptım\" bir şey anlatmıyor; somut problem ve çözüm anlatıyor."
+    },
+    {
+      "bad": "Takım çalışmasına yatkınım.",
+      "good": "4 kişilik ekipte her hafta 10-15 pull request'i inceledim; ekip için kod inceleme kontrol listesi hazırladım.",
+      "why": "Yetkinliği iddia etmek yerine onu gösteren bir iş anlatıyor."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "key": "ik-uzmani",
+  "title": "İnsan Kaynakları Uzmanı",
+  "summary": "İşe alım, çalışan ilişkileri, özlük ve bordro süreçlerini yürüten uzman.",
+  "sections": ["experience", "education", "certificates", "skills", "projects"],
+  "requirements": [
+    { "text": "Psikoloji, İşletme, Çalışma Ekonomisi veya ilgili bölümden mezuniyet", "importance": "must", "category": "education", "terms": ["Psikoloji", "İşletme", "Çalışma Ekonomisi", "İnsan Kaynakları"] },
+    { "text": "İşe alım süreçlerini uçtan uca yürütme", "importance": "must", "category": "experience", "terms": ["işe alım", "mülakat", "ilan", "aday"] },
+    { "text": "Yetkinlik bazlı mülakat deneyimi", "importance": "nice", "category": "experience", "terms": ["yetkinlik bazlı", "mülakat", "değerlendirme merkezi"], "levels": ["mid", "senior"] },
+    { "text": "Özlük işlemleri ve personel dosyası takibi", "importance": "must", "category": "experience", "terms": ["özlük", "personel dosyası", "işe giriş", "işten çıkış"] },
+    { "text": "Bordro ve SGK süreçlerine hakimiyet", "importance": "nice", "category": "experience", "terms": ["bordro", "SGK", "puantaj"], "levels": ["junior"] },
+    { "text": "Bordro ve SGK süreçlerinin yönetimi", "importance": "must", "category": "experience", "terms": ["bordro", "SGK", "puantaj"], "levels": ["mid", "senior"] },
+    { "text": "İş Kanunu ve ilgili mevzuat bilgisi", "importance": "must", "category": "experience", "terms": ["İş Kanunu", "mevzuat", "4857"] },
+    { "text": "Eğitim ve oryantasyon programları", "importance": "nice", "category": "experience", "terms": ["eğitim", "oryantasyon", "onboarding"] },
+    { "text": "Performans yönetimi sistemleri", "importance": "nice", "category": "experience", "terms": ["performans", "hedef kartı", "değerlendirme"], "levels": ["mid", "senior"] },
+    { "text": "Ücret ve yan haklar yönetimi", "importance": "must", "category": "experience", "terms": ["ücret", "yan hak", "maaş skalası", "ücret araştırması"], "levels": ["senior"] },
+    { "text": "Bir İK yazılımı ya da ERP İK modülü kullanımı", "importance": "nice", "category": "tool", "terms": ["SAP", "Logo", "Workday", "Kolay İK", "İK yazılımı"] },
+    { "text": "Excel'de raporlama", "importance": "must", "category": "tool", "terms": ["Excel"] },
+    { "text": "En az 2 yıl İK deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["mid"] },
+    { "text": "En az 5 yıl İK deneyimi", "importance": "must", "category": "experience", "terms": [], "levels": ["senior"] },
+    { "text": "İletişim ve gizlilik ilkelerine bağlılık", "importance": "must", "category": "soft", "terms": [] },
+    { "text": "İngilizce", "importance": "nice", "category": "language", "terms": ["İngilizce"] }
+  ],
+  "keywords": ["İnsan Kaynakları", "işe alım", "mülakat", "özlük", "bordro", "SGK", "İş Kanunu", "performans"],
+  "tips": [
+    "İşe alımda hacim ve hız önemli: yılda kaç pozisyon, ortalama kaç günde doldurdun, kaç başvurunun içinden.",
+    "Uyguladığın süreçlerin sonucunu yaz: oryantasyon programı ilk 6 ayda ayrılma oranını düşürdü mü?",
+    "Mevzuat bilgisini iddia etmek yerine uyguladığın bir durumu anlat (toplu işten çıkış, denetim, arabuluculuk).",
+    "İK'da gizlilik ve güven önemli; CV'de eski şirketin iç bilgilerini ya da kişi isimlerini yazma."
+  ],
+  "examples": [
+    {
+      "bad": "İşe alım süreçlerini yürüttüm.",
+      "good": "Yılda 45 pozisyonun işe alımını yürüttüm; ortalama doldurma süresini 41 günden 26 güne indirdim.",
+      "why": "Hacim ve ölçülebilir iyileşme var."
+    },
+    {
+      "bad": "Oryantasyon programı hazırladım.",
+      "good": "Yeni gelenler için 2 haftalık oryantasyon programı kurdum; ilk 6 ayda ayrılma oranı %19'dan %8'e düştü.",
+      "why": "İşin sonucunu ölçerek gösteriyor."
+    },
+    {
+      "bad": "Özlük ve bordro işlemlerini yaptım.",
+      "good": "220 çalışanın aylık puantaj ve bordro sürecini yönettim; SGK denetiminden eksiksiz dosyalarla çıktık.",
+      "why": "Ölçek ve somut bir sonuç (temiz denetim) var."
+    }
+  ]
+}
