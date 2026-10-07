@@ -27,6 +27,8 @@ namespace CvTailor.Api.Dtos
         public string Strength { get; set; } = "missing";
         // Kullanıcıya neden bu gücü verdiğimizi anlatan cümle
         public string Note { get; set; } = string.Empty;
+        // "Docker ve Kubernetes" isteyip sadece Docker bulunduysa: ["Kubernetes"]. Soru bunu soruyor.
+        public List<string> MissingTerms { get; set; } = new();
         public List<MatchEvidence> Evidence { get; set; } = new();
     }
 

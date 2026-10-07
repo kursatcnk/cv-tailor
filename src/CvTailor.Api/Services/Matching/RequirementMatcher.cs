@@ -92,12 +92,15 @@ namespace CvTailor.Api.Services.Matching
                 _ => MissingNote(item.Category)
             };
 
-            // "C# ve SQL" gibi birden çok şey isteyen gereksinimde sadece bir kısmı varsa tam kanıt sayılmaz.
+            // "Docker ve Kubernetes" gibi birden çok şey isteyen gereksinimde sadece bir kısmı varsa tam kanıt sayılmaz.
+            // "ve" bulunan terimle eksik terimin arasında olmalı; "REST API tasarlama ve geliştirme"deki "ve" fiilleri bağlıyor.
             var missingTerms = requirement.Terms.Where(t => !matchedTerms.Contains(t)).ToList();
-            if (item.Strength == "strong" && missingTerms.Count > 0 && requirement.Terms.Count > 1 && Conjunction.IsMatch(item.Text))
+            var required = missingTerms.Where(m => matchedTerms.Any(t => JoinedByConjunction(item.Text, t, m))).ToList();
+            if (item.Strength == "strong" && required.Count > 0)
             {
                 item.Strength = "weak";
-                item.Note = $"{string.Join(", ", matchedTerms)} görünüyor; {string.Join(", ", missingTerms)} görünmüyor.";
+                item.MissingTerms = required;
+                item.Note = $"{string.Join(", ", matchedTerms)} görünüyor; {string.Join(", ", required)} görünmüyor.";
             }
 
             // Terimsiz yıl şartında ("En az 3 yıl iş deneyimi") Strength yukarıda strong başladı; süre belirleyecek.
@@ -194,6 +197,17 @@ namespace CvTailor.Api.Services.Matching
                 "skill" => "Becerilerinde",
                 _ => "Kasanda"
             };
+        }
+
+        // İki terim gereksinim cümlesinde "ve/ile/and" ile mi bağlanmış? "Docker ve CI/CD süreçleri" → evet.
+        private static bool JoinedByConjunction(string text, string a, string b)
+        {
+            var normalized = SkillDictionary.Normalize(text);
+            var (na, nb) = (SkillDictionary.Normalize(a), SkillDictionary.Normalize(b));
+            var (ia, ib) = (normalized.IndexOf(na, StringComparison.Ordinal), normalized.IndexOf(nb, StringComparison.Ordinal));
+            if (ia < 0 || ib < 0) return false;
+            var (start, end) = ia < ib ? (ia + na.Length, ib) : (ib + nb.Length, ia);
+            return end > start && Conjunction.IsMatch(" " + normalized[start..end] + " ");
         }
 
         // Eksik gereksinim nasıl kapanır? Teknik ve deneyim eksikleri sorularla, diğerleri kasaya eklenerek.

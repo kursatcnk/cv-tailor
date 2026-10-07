@@ -18,6 +18,10 @@ namespace CvTailor.Api.Models
         // İlan çözümleyicinin çıktısı (gereksinimler, anahtar kelimeler). O anın fotoğrafı, JSON olarak.
         public string? AnalysisJson { get; set; }
 
+        // Bu hedef için cevaplanan ve atlanan soruların anahtarları; aynı soru tekrar sorulmasın.
+        // Cevapların kendisi kasada (Achievement, Source = interview).
+        public string? InterviewJson { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public User? User { get; set; }

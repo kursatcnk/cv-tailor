@@ -70,6 +70,15 @@ namespace CvTailor.Tests
         }
 
         [Fact]
+        public void Partial_match_asks_about_the_missing_part()
+        {
+            var question = Plan(Analysis(Requirement("ASP.NET Core ve Kubernetes deneyimi", "technical", "ASP.NET Core", "Kubernetes")), Profile())
+                .Single(q => q.Kind == "requirement");
+
+            Assert.Contains("kasanda Kubernetes görünmüyor", question.Prompt);
+        }
+
+        [Fact]
         public void Weak_evidence_suggests_the_job_it_came_from()
         {
             var profile = Profile();

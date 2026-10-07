@@ -83,8 +83,20 @@ namespace CvTailor.Tests
         [Fact]
         public void Requirement_asking_for_two_things_is_weak_when_only_one_is_there()
         {
-            var item = MatchSingle(Requirement("Docker ve Kubernetes deneyimi", "technical", "Kubernetes", "SQL Server"));
+            var item = MatchSingle(Requirement("ASP.NET Core ve Kubernetes deneyimi", "technical", "ASP.NET Core", "Kubernetes"));
+
             Assert.Equal("weak", item.Strength);
+            Assert.Equal(new[] { "Kubernetes" }, item.MissingTerms);
+        }
+
+        [Fact]
+        public void And_between_verbs_does_not_split_the_requirement()
+        {
+            // "ve" burada tasarlama ile geliştirmeyi bağlıyor; API geçen madde yeterli.
+            var item = MatchSingle(Requirement("REST API tasarlama ve geliştirme", "technical", "REST", "API"));
+
+            Assert.Equal("strong", item.Strength);
+            Assert.Empty(item.MissingTerms);
         }
 
         [Fact]

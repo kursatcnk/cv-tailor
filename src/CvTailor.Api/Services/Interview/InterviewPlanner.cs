@@ -35,7 +35,10 @@ namespace CvTailor.Api.Services.Interview
                 if (questions.Count >= MaxRequirementQuestions) break;
                 var key = $"req:{item.Key}";
                 if (done.Contains(key)) continue;
-                var term = requirements.GetValueOrDefault(item.Key)?.Terms.FirstOrDefault();
+                // Kısmi eksikte eksik olanı, sadece listede yazıyorsa bulunanı, hiç yoksa ilk terimi soruyoruz.
+                var term = item.MissingTerms.FirstOrDefault()
+                    ?? item.Evidence.Select(e => e.Term?.Split(" → ")[^1]).FirstOrDefault(t => t != null)
+                    ?? requirements.GetValueOrDefault(item.Key)?.Terms.FirstOrDefault();
                 questions.Add(new InterviewQuestion
                 {
                     Key = key,
@@ -44,7 +47,8 @@ namespace CvTailor.Api.Services.Interview
                     Prompt = RequirementPrompt(item, term),
                     Hint = item.Category == "experience"
                         ? "Örnek: \"Önceki işimde 2 yıl boyunca 120 bayinin cari hesaplarını takip ettim.\""
-                        : $"Örnek: \"Sipariş servisini {term ?? "bu teknolojiyle"} yazdım; günde ~3 bin isteği karşılıyordu.\" Kullanmadıysan \"Yok\" de, uydurmayalım.",
+                        // Terimi şablona koymak her terimde düzgün Türkçe vermiyor ("servisini birim testi yazdım"); örnek sabit.
+                        : "Örnek: \"Depo projesinde servisleri Docker ile paketledim; yeni ortam kurulumu 1 günden 1 saate indi.\" Kullanmadıysan \"Yok\" de, uydurmayalım.",
                     // Zayıf kanıt bir işte geçiyorsa cevap muhtemelen o işe ait.
                     SuggestedParentId = ParentOf(item, profile) ?? fallbackParent
                 });
@@ -74,6 +78,8 @@ namespace CvTailor.Api.Services.Interview
                 return item.Strength == "weak"
                     ? $"İlan \"{item.Text}\" istiyor ve kasandakiler tam karşılamıyor. Kasana yazmadığın, bununla ilgili bir deneyimin var mı?"
                     : $"İlan \"{item.Text}\" istiyor. Bununla ilgili bir deneyimin var mı? Nerede, ne kadar süre, ne yaptın?";
+            if (item.MissingTerms.Count > 0)
+                return $"İlan \"{item.Text}\" istiyor; kasanda {subject} görünmüyor. {subject} ile bir işte, projede ya da okulda çalıştın mı?";
             return item.Strength == "weak"
                 ? $"{subject} kasanda yazıyor ama nerede kullandığın görünmüyor. Hangi işte ya da projede, ne yapmak için kullandın?"
                 : $"İlan \"{item.Text}\" istiyor. {subject} ile bir işte, projede ya da okulda çalıştın mı? Çalıştıysan ne yaptığını bir iki cümleyle anlat.";

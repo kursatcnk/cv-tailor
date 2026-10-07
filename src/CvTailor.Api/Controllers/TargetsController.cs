@@ -1,4 +1,5 @@
 using CvTailor.Api.Dtos;
+using CvTailor.Api.Services.Interview;
 using CvTailor.Api.Services.Targets;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,21 @@ namespace CvTailor.Api.Controllers
             if (outcome.Usage != null)
                 return StatusCode(StatusCodes.Status429TooManyRequests, new QuotaExceededResponse { Message = outcome.Error!, Usage = outcome.Usage });
             return BadRequest(MessageResponse.Fail(outcome.Error!));
+        }
+
+        // Eşleşmede açık kalanlar için sorular. Cevaplar kasaya yeni madde olarak yazılıyor.
+        [HttpGet("{id:guid}/interview")]
+        public async Task<ActionResult<InterviewResponse>> Interview(Guid id, [FromServices] InterviewService interview, CancellationToken cancellationToken)
+        {
+            var response = await interview.GetAsync(User.GetUserId(), id, cancellationToken);
+            return response == null ? NotFound(MessageResponse.Fail("Hedef bulunamadı.")) : Ok(response);
+        }
+
+        [HttpPost("{id:guid}/interview")]
+        public async Task<IActionResult> Answer(Guid id, [FromBody] InterviewAnswersRequest request, [FromServices] InterviewService interview, CancellationToken cancellationToken)
+        {
+            var outcome = await interview.AnswerAsync(User.GetUserId(), id, request.Answers, cancellationToken);
+            return outcome.Response != null ? Ok(outcome.Response) : BadRequest(MessageResponse.Fail(outcome.Error!));
         }
 
         [HttpGet("professions")]
