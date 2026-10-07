@@ -234,6 +234,15 @@ select.ct-input { padding: 0 8px; }
 .ct-example-bad { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--danger); }
 .ct-example-good { font-weight: 500; }
 
+/* Sorular */
+.ct-interview { display: grid; gap: 10px; }
+.ct-interview h3 { margin: 0; }
+.ct-question { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
+.ct-question .ct-tag { justify-self: start; }
+.ct-question-prompt { font-weight: 500; }
+.ct-question-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.ct-question-row .ct-field { flex: 1 1 240px; }
+
 @media (max-width: 1100px) {
   .ct-editor-layout:has(.ct-source:not([hidden])) { grid-template-columns: minmax(0, 1fr); }
   .ct-source { position: static; max-height: 320px; order: -1; }

@@ -73,13 +73,94 @@
         </header>
         ${t.notice ? `<div class="ct-busy">${esc(t.notice)}</div>` : ""}
         ${a.summary ? `<p>${esc(a.summary)}</p>` : ""}
-        ${match ? renderMatch(match) : `<p class="ct-muted">Eşleşme hesaplanamadı.</p>`}
+        <div data-match-slot>${match ? renderMatch(match) : `<p class="ct-muted">Eşleşme hesaplanamadı.</p>`}</div>
+        <div data-interview-slot="${t.id}"></div>
         ${t.guide ? renderGuide(t.guide) : ""}
         ${a.responsibilities.length ? `<section><h3>İş tanımı</h3><ul class="ct-plain-list">${a.responsibilities.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
         ${a.keywords.length ? `<section><h3>Anahtar kelimeler</h3><p class="ct-hint">İşe alım sistemlerinin CV'nde arayacağı terimler.</p><div class="ct-chips is-static">${a.keywords.map(k => `<span class="ct-chip">${esc(k)}</span>`).join("")}</div></section>` : ""}
         ${t.postingText ? `<details class="ct-paste"><summary>İlan metnini göster</summary><pre class="ct-posting">${esc(t.postingText)}</pre></details>` : ""}
       </article>`;
   }
+
+  // ---- Sorular ----
+
+  const QUESTION_KIND = { requirement: "Eksik nitelik", soft: "Örnek durum", number: "Rakam" };
+
+  function renderInterview(data) {
+    if (!data.questions.length)
+      return `<section class="ct-interview"><h3>Sorular</h3><p class="ct-muted">${data.answeredCount ? "Sorulacak bir şey kalmadı. Cevapların kasana eklendi." : "Bu hedef için sorulacak bir şey yok; kasandakiler yeterli görünüyor."}</p></section>`;
+    const parents = data.parents.map(p => `<option value="${p.id}">${esc(p.label)}</option>`).join("");
+    return `
+      <section class="ct-interview">
+        <h3>Sorular <span>${data.questions.length}</span></h3>
+        <p class="ct-hint">Kanıtı eksik ya da zayıf kalan yerler için. Cevabın kasana kendi cümlenle eklenir; CV'de nasıl yazılacağını sonraki adımda birlikte düzenleriz. Yapmadığın bir şey için "Yok" de, uydurmayalım.</p>
+        ${data.questions.map(q => `
+          <form class="ct-question" data-key="${esc(q.key)}" novalidate>
+            <span class="ct-tag">${QUESTION_KIND[q.kind] || "Soru"}</span>
+            <p class="ct-question-prompt">${esc(q.prompt)}</p>
+            <textarea class="ct-textarea" rows="2" aria-label="Cevap"></textarea>
+            <p class="ct-hint">${esc(q.hint)}</p>
+            <div class="ct-question-row">
+              ${parents ? `<label class="ct-field"><span>Hangi işe ya da projeye eklensin?</span><select class="ct-input" data-parent>${parents}</select></label>` : ""}
+              <div class="ct-actions">
+                <button class="ct-button ct-button-secondary" type="button" data-skip>Yok, geç</button>
+                <button class="ct-button" type="submit">Kasaya ekle</button>
+              </div>
+            </div>
+          </form>`).join("")}
+      </section>`;
+  }
+
+  async function mountInterview(root, targetId) {
+    const slot = root.querySelector(`[data-interview-slot="${targetId}"]`);
+    if (!slot) return;
+    const { ok, data } = await session.api.get(`/api/targets/${targetId}/interview`);
+    if (!ok) return;
+    showInterview(root, slot, data);
+  }
+
+  function showInterview(root, slot, data) {
+    slot.innerHTML = renderInterview(data);
+    // Önerilen işi seçili getir.
+    data.questions.forEach(q => {
+      const select = slot.querySelector(`[data-key="${CSS.escape(q.key)}"] [data-parent]`);
+      if (select && q.suggestedParentId) select.value = q.suggestedParentId;
+    });
+    root.querySelector("[data-match-slot]").innerHTML = renderMatch(data.match);
+  }
+
+  async function sendAnswer(form, skip) {
+    const root = form.closest("#ct-new-result, #ct-cvs-detail");
+    const slot = form.closest("[data-interview-slot]");
+    const answer = form.querySelector("textarea").value.trim();
+    if (!skip && answer.length < 10) { ui.toast("Bir iki cümleyle anlat ya da \"Yok, geç\" de.", "error"); return; }
+
+    form.querySelectorAll("button").forEach(b => { b.disabled = true; });
+    const { ok, data } = await session.api.post(`/api/targets/${slot.dataset.interviewSlot}/interview`, {
+      answers: [{ key: form.dataset.key, answer: skip ? null : answer, parentId: form.querySelector("[data-parent]")?.value || null, skip }]
+    });
+    if (!ok) {
+      form.querySelectorAll("button").forEach(b => { b.disabled = false; });
+      ui.toast(data?.message || "Cevap kaydedilemedi.", "error");
+      return;
+    }
+    showInterview(root, slot, data);
+    ui.toast(skip ? "Bu soru bir daha sorulmayacak." : "Cevabın kasana eklendi; eşleşme güncellendi.");
+  }
+
+  ["#ct-new-result", "#ct-cvs-detail"].forEach(selector => {
+    const root = $(selector);
+    root.addEventListener("submit", event => {
+      const form = event.target.closest(".ct-question");
+      if (!form) return;
+      event.preventDefault();
+      sendAnswer(form, false);
+    });
+    root.addEventListener("click", event => {
+      const skip = event.target.closest("[data-skip]");
+      if (skip) sendAnswer(skip.closest(".ct-question"), true);
+    });
+  });
 
   async function loadMatch(id) {
     const { ok, data } = await session.api.get(`/api/targets/${id}/match`);
@@ -90,6 +171,7 @@
     const result = $("#ct-new-result");
     result.innerHTML = renderTarget(target, await loadMatch(target.id));
     result.hidden = false;
+    mountInterview(result, target.id);
     result.scrollIntoView({ block: "start" });
     loadList();
   }
@@ -195,6 +277,7 @@
     const detail = $("#ct-cvs-detail");
     detail.innerHTML = `<button class="ct-link-button" type="button" data-back>← Bütün hedefler</button>${renderTarget(data, match, { withDelete: true })}`;
     detail.hidden = false;
+    mountInterview(detail, id);
     window.scrollTo({ top: 0 });
   }
 
