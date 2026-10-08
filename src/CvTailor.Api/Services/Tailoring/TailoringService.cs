@@ -107,7 +107,7 @@ namespace CvTailor.Api.Services.Tailoring
             _context.TailoredCvs.Add(cv);
             await _context.SaveChangesAsync(ct);
 
-            var dto = ToDto(cv, target.Title, document, changes);
+            var dto = ToDto(cv, target.Title, target.Analysis, document, changes);
             dto.Warnings = PiiScanner.Warnings(profile);
             dto.UsedAi = usedAi;
             dto.Notice = notice;
@@ -116,9 +116,76 @@ namespace CvTailor.Api.Services.Tailoring
 
         public async Task<TailoredCvDto?> GetAsync(Guid userId, Guid id, CancellationToken ct)
         {
-            var cv = await _context.TailoredCvs.AsNoTracking().Include(c => c.JobTarget)
-                .FirstOrDefaultAsync(c => c.Id == id && c.JobTarget!.UserId == userId, ct);
-            return cv == null ? null : ToDto(cv, cv.JobTarget!.Title, Read<CvDocument>(cv.ContentJson), Read<List<CvChange>>(cv.ChangesJson));
+            var cv = await Load(userId, id).AsNoTracking().FirstOrDefaultAsync(ct);
+            return cv == null ? null : ToDto(cv, Read<CvDocument>(cv.ContentJson), Read<List<CvChange>>(cv.ChangesJson));
+        }
+
+        // Prova ekranından: kabul, ret, elle düzenleme ya da alternatif seçimi. Elle yazılan ya da seçilen metin
+        // uydurma korumasından tekrar geçiyor; kullanıcının kendi yazdığına da "kaynakta yok" uyarısı çıkabiliyor.
+        // Uyarılı bir metni kabul etmek kullanıcının açık kararı; engellemiyoruz.
+        public async Task<TailoringOutcome> UpdateChangeAsync(Guid userId, Guid id, string changeId, UpdateChangeRequest request, CancellationToken ct)
+        {
+            var cv = await Load(userId, id).FirstOrDefaultAsync(ct);
+            if (cv == null) return TailoringOutcome.Fail("CV bulunamadı.");
+            var changes = Read<List<CvChange>>(cv.ChangesJson);
+            var change = changes.FirstOrDefault(c => c.Id == changeId);
+            if (change == null) return TailoringOutcome.Fail("Değişiklik bulunamadı.");
+
+            var text = request.Alternative is int i && i >= 0 && i < change.Alternatives.Count ? change.Alternatives[i] : request.Text?.Trim();
+            if (text != null)
+            {
+                if (text.Length is < 10 or > 400) return TailoringOutcome.Fail("Madde 10-400 karakter arasında olmalı.");
+                var profile = (await _vault.GetAsync(userId, ct)).Profile;
+                var analysis = Read<JobAnalysis>(cv.JobTarget!.AnalysisJson ?? "{}");
+                var targetTerms = analysis.Requirements.SelectMany(r => r.Terms).Concat(analysis.Keywords);
+                change.EditedText = text == change.After ? null : text;
+                change.Guard = _guard.Check(text, GuardSource(change, profile, InputForEdits(changes, profile)), targetTerms);
+                change.Decision = "accepted";
+            }
+            if (request.Decision is "accepted" or "rejected") change.Decision = request.Decision;
+
+            cv.ChangesJson = JsonSerializer.Serialize(changes, Json);
+            cv.Status = "draft";
+            cv.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(ct);
+            return TailoringOutcome.Ok(ToDto(cv, Read<CvDocument>(cv.ContentJson), changes));
+        }
+
+        // Onaylanan CV "ready" oluyor. Onay bekleyen (uyarılı) maddeler varsa onların orijinali basılıyor; kullanıcıya söylüyoruz.
+        public async Task<TailoringOutcome> ApproveAsync(Guid userId, Guid id, CancellationToken ct)
+        {
+            var cv = await Load(userId, id).FirstOrDefaultAsync(ct);
+            if (cv == null) return TailoringOutcome.Fail("CV bulunamadı.");
+            var changes = Read<List<CvChange>>(cv.ChangesJson);
+            cv.Status = "ready";
+            cv.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(ct);
+            var dto = ToDto(cv, Read<CvDocument>(cv.ContentJson), changes);
+            var pending = changes.Count(c => c.Decision == "pending");
+            if (pending > 0) dto.Notice = $"Onay bekleyen {pending} maddenin orijinali kullanıldı.";
+            return TailoringOutcome.Ok(dto);
+        }
+
+        public async Task<bool> DeleteAsync(Guid userId, Guid id, CancellationToken ct) =>
+            await _context.TailoredCvs.Where(c => c.Id == id && c.JobTarget!.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+
+        private IQueryable<TailoredCv> Load(Guid userId, Guid id) =>
+            _context.TailoredCvs.Include(c => c.JobTarget).Where(c => c.Id == id && c.JobTarget!.UserId == userId);
+
+        // Düzenlemede yeniden yazım girdisi elimizde yok; özetin kaynağı için CV'deki maddelerin orijinallerinden kuruyoruz.
+        private static RewriteInput InputForEdits(List<CvChange> changes, ProfileDto profile)
+        {
+            var months = ExperienceDuration.TotalMonths(profile.Experiences.Where(e => e.EmploymentType != "internship"), DateTime.UtcNow);
+            return new RewriteInput
+            {
+                TotalExperience = months > 0 ? ExperienceDuration.Format(months) : null,
+                Entries = changes.Where(c => c.Kind == "bullet").GroupBy(c => c.ParentId).Select(g => new RewriteInputEntry
+                {
+                    Title = profile.Experiences.FirstOrDefault(e => e.Id == g.Key)?.Title ?? profile.Projects.FirstOrDefault(p => p.Id == g.Key)?.Name ?? "",
+                    Subtitle = profile.Experiences.FirstOrDefault(e => e.Id == g.Key)?.Company,
+                    Facts = g.Select(c => new RewriteFact(c.Id, c.Before, false)).ToList()
+                }).ToList()
+            };
         }
 
         public async Task<List<TailoredCvSummaryDto>> ListAsync(Guid userId, Guid targetId, CancellationToken ct) =>
@@ -363,11 +430,15 @@ namespace CvTailor.Api.Services.Tailoring
 
         private static T Read<T>(string json) where T : new() => JsonSerializer.Deserialize<T>(json, Json) ?? new T();
 
-        private static TailoredCvDto ToDto(TailoredCv cv, string targetTitle, CvDocument document, List<CvChange> changes) => new()
+        private static TailoredCvDto ToDto(TailoredCv cv, CvDocument document, List<CvChange> changes) =>
+            ToDto(cv, cv.JobTarget!.Title, Read<JobAnalysis>(cv.JobTarget.AnalysisJson ?? "{}"), document, changes);
+
+        private static TailoredCvDto ToDto(TailoredCv cv, string targetTitle, JobAnalysis analysis, CvDocument document, List<CvChange> changes) => new()
         {
             Id = cv.Id,
             TargetId = cv.JobTargetId,
             TargetTitle = targetTitle,
+            RequirementLabels = analysis.Requirements.Where(r => r.Key != null && r.Text != null).ToDictionary(r => r.Key!, r => r.Text!),
             Status = cv.Status,
             Document = document,
             Changes = changes,

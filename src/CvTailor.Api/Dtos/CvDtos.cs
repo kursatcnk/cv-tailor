@@ -99,11 +99,21 @@ namespace CvTailor.Api.Dtos
         public List<string> Issues { get; set; } = new();
     }
 
+    // Prova ekranından gelen karar. Text: elle düzenlenmiş metin, Alternative: seçilen alternatifin sırası.
+    public class UpdateChangeRequest
+    {
+        public string? Decision { get; set; }
+        public string? Text { get; set; }
+        public int? Alternative { get; set; }
+    }
+
     public class TailoredCvDto
     {
         public Guid Id { get; set; }
         public Guid TargetId { get; set; }
         public string TargetTitle { get; set; } = string.Empty;
+        // r1 → "En az 1 yıl C# deneyimi"; prova ekranı maddenin hangi gereksinimi kanıtladığını gösteriyor.
+        public Dictionary<string, string> RequirementLabels { get; set; } = new();
         public string Status { get; set; } = "draft";
         public CvDocument Document { get; set; } = new();
         public List<CvChange> Changes { get; set; } = new();

@@ -38,6 +38,22 @@ namespace CvTailor.Api.Controllers
             var cv = await _tailoring.GetAsync(User.GetUserId(), id, cancellationToken);
             return cv == null ? NotFound(MessageResponse.Fail("CV bulunamadı.")) : Ok(cv);
         }
+
+        // Prova: tek bir değişikliği kabul et, reddet, düzenle ya da alternatifini seç.
+        [HttpPatch("{id:guid}/changes/{changeId}")]
+        public async Task<IActionResult> UpdateChange(Guid id, string changeId, [FromBody] UpdateChangeRequest request, CancellationToken cancellationToken) =>
+            ToResult(await _tailoring.UpdateChangeAsync(User.GetUserId(), id, changeId, request, cancellationToken));
+
+        [HttpPost("{id:guid}/approve")]
+        public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken) =>
+            ToResult(await _tailoring.ApproveAsync(User.GetUserId(), id, cancellationToken));
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken) =>
+            await _tailoring.DeleteAsync(User.GetUserId(), id, cancellationToken) ? NoContent() : NotFound(MessageResponse.Fail("CV bulunamadı."));
+
+        private IActionResult ToResult(TailoringOutcome outcome) =>
+            outcome.Cv != null ? Ok(outcome.Cv) : BadRequest(MessageResponse.Fail(outcome.Error!));
     }
 
     public class GenerateCvRequest
