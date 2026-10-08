@@ -15,6 +15,7 @@ using CvTailor.Api.Services.Ai;
 using CvTailor.Api.Services.Cv;
 using CvTailor.Api.Services.Matching;
 using CvTailor.Api.Services.Interview;
+using CvTailor.Api.Services.Tailoring;
 using CvTailor.Api.Services.Targets;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -128,6 +129,8 @@ builder.Services.AddScoped<VaultService>();
 builder.Services.AddSingleton<JobAnalyzer>();
 builder.Services.AddScoped<TargetService>();
 builder.Services.AddScoped<InterviewService>();
+builder.Services.AddSingleton<BulletRewriter>();
+builder.Services.AddScoped<TailoringService>();
 // Sözlük açılışta bir kez okunuyor; dosya bozuksa uygulama ilk istekte değil burada hata versin.
 builder.Services.AddSingleton(SkillDictionary.Load(Path.Combine(AppContext.BaseDirectory, "Knowledge", "synonyms.json")));
 builder.Services.AddSingleton<RequirementMatcher>();

@@ -117,7 +117,11 @@ namespace CvTailor.Api.Services.Tailoring
             - "alternatives": two other phrasings that follow the same rules.
             - "reason": one Turkish sentence for the candidate explaining what you changed and why, e.g. "İlan ASP.NET Core istiyor; teknolojiyi başa aldım ve 'görev aldım' yerine ne yaptığını yazdım."
 
-            Summary: two or three sentences in Turkish for the top of the CV, aimed at this job, built only from facts (use y1 for total experience and s0 for the candidate's own summary if present). Never claim more years than y1. sources: the fact ids used. If there is not enough to say, return "summary": null.
+            Summary: two or three sentences in Turkish for the top of the CV, aimed at this job, built only from facts (use y1 for total experience and s0 for the candidate's own summary if present).
+            - Write it in the usual Turkish CV style without "ben" and without first-person verbs: "ASP.NET Core ve SQL Server ile backend geliştiren, 4 yılı aşkın deneyime sahip yazılım uzmanı. ..."
+            - Round experience down to whole years ("4 yılı aşkın"); under one year, say "1 yıldan az". Never claim more than y1.
+            - No generic claims that the facts do not show ("süreçleri optimize ettim", "dinamik", "çözüm odaklı").
+            - sources: the fact ids used. If there is not enough to say, return "summary": null.
 
             Return ONLY a JSON object with exactly this shape:
             {
