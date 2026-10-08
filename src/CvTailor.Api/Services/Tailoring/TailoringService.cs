@@ -3,6 +3,7 @@ using CvTailor.Api.Data;
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Models;
 using CvTailor.Api.Services.Ai;
+using CvTailor.Api.Services.Privacy;
 using CvTailor.Api.Services.Cv;
 using CvTailor.Api.Services.Matching;
 using CvTailor.Api.Services.Targets;
@@ -74,7 +75,7 @@ namespace CvTailor.Api.Services.Tailoring
                     return TailoringOutcome.QuotaExceeded(await _usage.GetUsageAsync(userId, user.Plan));
                 try
                 {
-                    var (result, completion) = await _rewriter.RewriteAsync(input, ct);
+                    var (result, completion) = await _rewriter.RewriteAsync(input, PiiMask.ForProfile(profile), ct);
                     await _usage.CompleteAsync(reservation.Value, completion.Model, completion.InputTokens + completion.OutputTokens);
                     output = result;
                     usedAi = true;
@@ -107,6 +108,7 @@ namespace CvTailor.Api.Services.Tailoring
             await _context.SaveChangesAsync(ct);
 
             var dto = ToDto(cv, target.Title, document, changes);
+            dto.Warnings = PiiScanner.Warnings(profile);
             dto.UsedAi = usedAi;
             dto.Notice = notice;
             return TailoringOutcome.Ok(dto);

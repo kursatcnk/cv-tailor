@@ -109,6 +109,8 @@ namespace CvTailor.Api.Dtos
         public List<CvChange> Changes { get; set; } = new();
         public bool UsedAi { get; set; }
         public string? Notice { get; set; }
+        // TC kimlik no, ev adresi gibi CV'de olmaması gerekenler
+        public List<string> Warnings { get; set; } = new();
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

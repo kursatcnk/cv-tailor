@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Services.Ai;
+using CvTailor.Api.Services.Privacy;
 
 namespace CvTailor.Api.Services.Cv
 {
@@ -18,11 +19,37 @@ namespace CvTailor.Api.Services.Cv
 
         public CvParser(AiService ai) => _ai = ai;
 
+        // E-posta, telefon, link, TC kimlik no ve IBAN AI'a yer tutucu olarak gidiyor ([EPOSTA_1]); AI onları doğru alana
+        // kopyalıyor, biz geri açıyoruz. Ad soyadı desenle bulmak güvenilir değil, o yüzden ad AI'a açık gidiyor.
         public async Task<(ProfileDto Profile, AiCompletion Completion)> ParseAsync(string text, CancellationToken cancellationToken)
         {
-            var safeText = text.Replace("</cv>", "</cv_>", StringComparison.OrdinalIgnoreCase);
+            var mask = new PiiMask(Array.Empty<(string?, string)>());
+            var safeText = mask.Mask(text).Replace("</cv>", "</cv_>", StringComparison.OrdinalIgnoreCase);
             var (profile, completion) = await _ai.CompleteJsonAsync<ProfileDto>(SystemPrompt, $"<cv>\n{safeText}\n</cv>", cancellationToken);
-            return (ProfileNormalizer.Normalize(profile, "cv"), completion);
+            return (ProfileNormalizer.Normalize(Unmask(profile, mask), "cv"), completion);
+        }
+
+        private static ProfileDto Unmask(ProfileDto p, PiiMask mask)
+        {
+            p.FullName = mask.Unmask(p.FullName);
+            p.Headline = mask.Unmask(p.Headline);
+            p.Email = mask.Unmask(p.Email);
+            p.Phone = mask.Unmask(p.Phone);
+            p.Location = mask.Unmask(p.Location);
+            p.LinkedInUrl = mask.Unmask(p.LinkedInUrl);
+            p.GitHubUrl = mask.Unmask(p.GitHubUrl);
+            p.WebsiteUrl = mask.Unmask(p.WebsiteUrl);
+            p.Summary = mask.Unmask(p.Summary);
+            foreach (var a in (p.Experiences ?? new()).SelectMany(e => e.Achievements ?? new()).Concat((p.Projects ?? new()).SelectMany(x => x.Achievements ?? new())))
+                a.Text = mask.Unmask(a.Text);
+            foreach (var project in p.Projects ?? new())
+            {
+                project.Url = mask.Unmask(project.Url);
+                project.Description = mask.Unmask(project.Description);
+            }
+            foreach (var c in p.Certificates ?? new())
+                c.Url = mask.Unmask(c.Url);
+            return p;
         }
 
         // AI yokken: sadece kesin tanınan iletişim bilgileri dolduruluyor, gerisini kullanıcı metne bakarak giriyor.
@@ -48,6 +75,7 @@ namespace CvTailor.Api.Services.Cv
             - Split comma separated skill lists into separate skills.
             - headline: the job title line under the name, if there is one. summary: the profile/about paragraph, copied exactly, if there is one.
             - Projects are things the person built outside a job (personal, school, open source). Put a project's bullets in its achievements.
+            - Personal data is replaced by placeholders such as [EPOSTA_1], [TELEFON_1], [LINK_1]. Copy a placeholder exactly as written into the matching field (email, phone, linkedInUrl, gitHubUrl, websiteUrl, project url).
             - Leave a field null when the CV does not contain it. Never guess emails, phone numbers, links or dates.
             - Set every "id" to null and every achievement "source" to "cv".
 

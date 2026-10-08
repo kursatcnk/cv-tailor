@@ -2,6 +2,7 @@ using CvTailor.Api.Data;
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Models;
 using CvTailor.Api.Services.Ai;
+using CvTailor.Api.Services.Privacy;
 using Microsoft.EntityFrameworkCore;
 
 namespace CvTailor.Api.Services.Cv
@@ -46,6 +47,7 @@ namespace CvTailor.Api.Services.Cv
             var response = new CvImportResponse { ExtractedText = extracted.Text };
             if (extracted.HasUnreadableLetters)
                 response.Warnings.Add("PDF'teki bazı harf birleşimleri (ör. \"ti\", \"fi\") okunamadı. Bunlar tamamlanmaya çalışıldı; kelimeleri kontrol et.");
+            response.Warnings.AddRange(PiiScanner.Warnings(extracted.Text));
 
             var provider = _ai.ResolveProvider();
             if (provider == null)

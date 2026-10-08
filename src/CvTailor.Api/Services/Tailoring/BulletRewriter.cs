@@ -1,6 +1,7 @@
 using System.Text;
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Services.Ai;
+using CvTailor.Api.Services.Privacy;
 
 namespace CvTailor.Api.Services.Tailoring
 {
@@ -14,10 +15,46 @@ namespace CvTailor.Api.Services.Tailoring
 
         public BulletRewriter(AiService ai) => _ai = ai;
 
-        public async Task<(RewriteOutput Output, AiCompletion Completion)> RewriteAsync(RewriteInput input, CancellationToken cancellationToken)
+        // AI'a kişisel verileri maskelenmiş bir kopya gidiyor; cevap geri açılıyor. Çağıran taraf maskesiz girdiyle çalışmaya devam ediyor.
+        public async Task<(RewriteOutput Output, AiCompletion Completion)> RewriteAsync(RewriteInput input, PiiMask mask, CancellationToken cancellationToken)
         {
-            var (output, completion) = await _ai.CompleteJsonAsync<RewriteOutput>(SystemPrompt, BuildMessage(input), cancellationToken);
-            return (Clean(output, input), completion);
+            var masked = Masked(input, mask);
+            var (output, completion) = await _ai.CompleteJsonAsync<RewriteOutput>(SystemPrompt, BuildMessage(masked), cancellationToken);
+            return (Unmasked(Clean(output, masked), mask), completion);
+        }
+
+        private static RewriteInput Masked(RewriteInput input, PiiMask mask) => new()
+        {
+            TargetTitle = input.TargetTitle,
+            Seniority = input.Seniority,
+            Summary = input.Summary == null ? null : mask.Mask(input.Summary),
+            TotalExperience = input.TotalExperience,
+            Requirements = input.Requirements,
+            Keywords = input.Keywords,
+            Entries = input.Entries.Select(e => new RewriteInputEntry
+            {
+                Token = e.Token,
+                Kind = e.Kind,
+                Title = mask.Mask(e.Title),
+                Subtitle = e.Subtitle == null ? null : mask.Mask(e.Subtitle),
+                Facts = e.Facts.Select(f => f with { Text = mask.Mask(f.Text) }).ToList()
+            }).ToList()
+        };
+
+        private static RewriteOutput Unmasked(RewriteOutput output, PiiMask mask)
+        {
+            if (output.Summary != null)
+            {
+                output.Summary.Text = mask.Unmask(output.Summary.Text);
+                output.Summary.Reason = mask.Unmask(output.Summary.Reason);
+            }
+            foreach (var bullet in output.Entries.SelectMany(e => e.Bullets))
+            {
+                bullet.Text = mask.Unmask(bullet.Text);
+                bullet.Reason = mask.Unmask(bullet.Reason);
+                bullet.Alternatives = bullet.Alternatives.Select(mask.Unmask).ToList();
+            }
+            return output;
         }
 
         // Cevaba körü körüne güvenmiyorum: bilinmeyen iş/madde etiketlerini at, bir maddeyi iki yerde kullanma,
