@@ -130,6 +130,7 @@ builder.Services.AddSingleton<JobAnalyzer>();
 builder.Services.AddScoped<TargetService>();
 builder.Services.AddScoped<InterviewService>();
 builder.Services.AddSingleton<BulletRewriter>();
+builder.Services.AddSingleton<FabricationGuard>();
 builder.Services.AddScoped<TailoringService>();
 // Sözlük açılışta bir kez okunuyor; dosya bozuksa uygulama ilk istekte değil burada hata versin.
 builder.Services.AddSingleton(SkillDictionary.Load(Path.Combine(AppContext.BaseDirectory, "Knowledge", "synonyms.json")));

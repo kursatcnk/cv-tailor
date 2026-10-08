@@ -40,6 +40,10 @@ namespace CvTailor.Api.Services.Matching
 
         public static SkillDictionary Load(string path) => new(File.ReadAllText(path, Encoding.UTF8));
 
+        // Sözlükteki bütün terimler; uydurma koruması yeni maddede bunlardan biri geçiyor mu diye bakıyor.
+        public IEnumerable<string> AllTerms =>
+            _groupOf.Values.SelectMany(g => g).Concat(_impliedBy.Values.SelectMany(v => v)).Distinct(StringComparer.OrdinalIgnoreCase);
+
         // Gereksinimdeki terim için CV'de aranacak bütün yazılışlar: kendisi, eşdeğerleri,
         // onu kapsayan terimler ve onların eşdeğerleri.
         public IReadOnlyCollection<string> EvidenceTerms(string term)

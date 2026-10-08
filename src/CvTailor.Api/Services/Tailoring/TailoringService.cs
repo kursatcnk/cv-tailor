@@ -24,13 +24,15 @@ namespace CvTailor.Api.Services.Tailoring
         private readonly RequirementMatcher _matcher;
         private readonly ProfessionCatalog _professions;
         private readonly BulletRewriter _rewriter;
+        private readonly FabricationGuard _guard;
         private readonly AiService _ai;
         private readonly UsageService _usage;
         private readonly ILogger<TailoringService> _logger;
 
         public TailoringService(CvTailorDbContext context, TargetService targets, VaultService vault, RequirementMatcher matcher,
-            ProfessionCatalog professions, BulletRewriter rewriter, AiService ai, UsageService usage, ILogger<TailoringService> logger)
+            ProfessionCatalog professions, BulletRewriter rewriter, FabricationGuard guard, AiService ai, UsageService usage, ILogger<TailoringService> logger)
         {
+            _guard = guard;
             _context = context;
             _targets = targets;
             _vault = vault;
@@ -87,6 +89,7 @@ namespace CvTailor.Api.Services.Tailoring
             }
 
             var (document, changes, scores) = Assemble(target, profile, match, selection, input, output, tokens);
+            ApplyGuard(changes, target, profile, input);
             CvLayoutPlanner.Fit(document, changes, scores);
             document.Dropped.InsertRange(0, selection.Dropped);
 
@@ -160,6 +163,43 @@ namespace CvTailor.Api.Services.Tailoring
 
         // AI yokken ya da hata verdiğinde: maddeler olduğu gibi, sadece seçilmiş ve sıralanmış.
         private static RewriteOutput Unchanged(RewriteInput input) => BulletRewriter.Clean(new RewriteOutput(), input);
+
+        // ---- Uydurma koruması ----
+
+        // Her yeni madde dayandığı kasa maddeleriyle karşılaştırılıyor. İşaretlenen madde "pending" başlıyor:
+        // kullanıcı prova ekranında onaylamadan CV'ye orijinali basılıyor.
+        private void ApplyGuard(List<CvChange> changes, TargetDto target, ProfileDto profile, RewriteInput input)
+        {
+            var targetTerms = target.Analysis.Requirements.SelectMany(r => r.Terms).Concat(target.Analysis.Keywords).ToList();
+            foreach (var change in changes)
+            {
+                if (change.After == change.Before) continue;
+                change.Guard = _guard.Check(change.After, GuardSource(change, profile, input), targetTerms);
+                if (change.Guard.Status == "flagged") change.Decision = "pending";
+            }
+        }
+
+        // Maddenin kaynağı: dayandığı maddeler + bağlı olduğu iş/proje adı (madde "Örnek Lojistik'te" diyebilir).
+        // Özetin kaynağı daha geniş: bütün seçili maddeler, unvanlar, beceriler, eğitim ve kodun hesapladığı toplam süre.
+        public static string GuardSource(CvChange change, ProfileDto profile, RewriteInput input)
+        {
+            if (change.Kind == "summary")
+            {
+                // Prompt bir yıldan kısa deneyim için "1 yıldan az" yazdırıyor; o 1 rakamı uydurma sayılmasın.
+                var underAYear = input.TotalExperience == null || !input.TotalExperience.Contains("yıl");
+                var parts = input.Entries.SelectMany(e => e.Facts.Select(f => f.Text).Append(e.Title).Append(e.Subtitle ?? ""))
+                    .Append(profile.Summary ?? "").Append(profile.Headline ?? "")
+                    .Concat(profile.Skills.Select(s => s.Name ?? ""))
+                    .Concat(profile.Educations.Select(e => $"{e.Field} {e.Degree}"))
+                    .Append(input.TotalExperience == null ? "" : $"Toplam iş deneyimi: {input.TotalExperience}")
+                    .Append(underAYear ? "1 yıldan az" : "");
+                return string.Join(" ", parts);
+            }
+            var parent = profile.Experiences.FirstOrDefault(e => e.Id == change.ParentId) is { } exp
+                ? $"{exp.Title} {exp.Company}"
+                : profile.Projects.FirstOrDefault(p => p.Id == change.ParentId) is { } project ? $"{project.Name} {project.Description}" : "";
+            return $"{change.Before} {parent}";
+        }
 
         // ---- Belge ----
 
