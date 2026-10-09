@@ -75,6 +75,7 @@
         ${a.summary ? `<p>${esc(a.summary)}</p>` : ""}
         <div data-match-slot>${match ? renderMatch(match) : `<p class="ct-muted">Eşleşme hesaplanamadı.</p>`}</div>
         <div data-interview-slot="${t.id}"></div>
+        <div data-cvs-slot="${t.id}"></div>
         ${t.guide ? renderGuide(t.guide) : ""}
         ${a.responsibilities.length ? `<section><h3>İş tanımı</h3><ul class="ct-plain-list">${a.responsibilities.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
         ${a.keywords.length ? `<section><h3>Anahtar kelimeler</h3><p class="ct-hint">İşe alım sistemlerinin CV'nde arayacağı terimler.</p><div class="ct-chips is-static">${a.keywords.map(k => `<span class="ct-chip">${esc(k)}</span>`).join("")}</div></section>` : ""}
@@ -162,6 +163,48 @@
     });
   });
 
+  // ---- Bu hedef için hazırlanan CV'ler ----
+
+  async function mountCvs(root, targetId) {
+    const slot = root.querySelector(`[data-cvs-slot="${targetId}"]`);
+    if (!slot) return;
+    const { ok, data } = await session.api.get(`/api/cvs?targetId=${targetId}`);
+    const versions = ok ? data : [];
+    slot.innerHTML = `
+      <section class="ct-cv-block">
+        <h3>CV</h3>
+        <p class="ct-hint">Seçilen maddeler bu ilana göre yeniden yazılır, tek sayfaya sığdırılır. Her değişikliği provada tek tek onaylarsın; kasandaki bilgiler değişmez.</p>
+        <div class="ct-actions">
+          <button class="ct-button" type="button" data-generate-cv="${targetId}">${versions.length ? "Yeni sürüm hazırla" : "Bu hedef için CV hazırla"}</button>
+        </div>
+        <div class="ct-busy" data-generate-busy hidden>Maddeler yeniden yazılıyor ve doğrulanıyor...</div>
+        ${versions.length ? `<ul class="ct-versions">${versions.map((v, i) => `
+          <li><a href="#review:${v.id}">${i === 0 ? "Son sürüm" : `Sürüm ${versions.length - i}`}</a>
+            <span class="ct-badge ${v.status === "ready" ? "is-strong" : "is-unknown"}">${v.status === "ready" ? "Onaylandı" : "Taslak"}</span>
+            <span class="ct-muted">${dateFormat.format(new Date(v.createdAt))}</span></li>`).join("")}</ul>` : ""}
+      </section>`;
+  }
+
+  async function generateCv(button) {
+    const slot = button.closest("[data-cvs-slot]");
+    button.disabled = true;
+    slot.querySelector("[data-generate-busy]").hidden = false;
+    const { ok, status, data } = await session.api.post("/api/cvs", { targetId: slot.dataset.cvsSlot });
+    ui.refreshUsage();
+    if (!ok) {
+      button.disabled = false;
+      slot.querySelector("[data-generate-busy]").hidden = true;
+      ui.toast(status === 429 && data?.code === "quota_exceeded" ? "Bu ayki AI hakkın doldu." : (data?.message || "CV hazırlanamadı."), "error");
+      return;
+    }
+    location.hash = `#review:${data.id}`;
+  }
+
+  ["#ct-new-result", "#ct-cvs-detail"].forEach(selector => $(selector).addEventListener("click", event => {
+    const button = event.target.closest("[data-generate-cv]");
+    if (button) generateCv(button);
+  }));
+
   async function loadMatch(id) {
     const { ok, data } = await session.api.get(`/api/targets/${id}/match`);
     return ok ? data : null;
@@ -172,6 +215,7 @@
     result.innerHTML = renderTarget(target, await loadMatch(target.id));
     result.hidden = false;
     mountInterview(result, target.id);
+    mountCvs(result, target.id);
     result.scrollIntoView({ block: "start" });
     loadList();
   }
@@ -278,6 +322,7 @@
     detail.innerHTML = `<button class="ct-link-button" type="button" data-back>← Bütün hedefler</button>${renderTarget(data, match, { withDelete: true })}`;
     detail.hidden = false;
     mountInterview(detail, id);
+    mountCvs(detail, id);
     window.scrollTo({ top: 0 });
   }
 

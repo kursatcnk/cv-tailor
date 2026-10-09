@@ -16,11 +16,13 @@
   }
 
   // Ekranlar hash ile değişiyor (#vault, #new...); sayfa yenilenince aynı ekranda kalınsın.
+  // Parametreli ekranlar "#review:<id>" biçiminde; menüde ait olduğu bölüm (CV'lerim) seçili görünüyor.
+  const PARENT = { review: "cvs" };
   function showView() {
-    const name = location.hash.slice(1);
+    const name = location.hash.slice(1).split(":")[0];
     const target = views.some(v => v.dataset.view === name) ? name : "vault";
     views.forEach(v => { v.hidden = v.dataset.view !== target; });
-    links.forEach(a => a.classList.toggle("is-active", a.dataset.view === target));
+    links.forEach(a => a.classList.toggle("is-active", a.dataset.view === (PARENT[target] || target)));
   }
   window.addEventListener("hashchange", showView);
   showView();
