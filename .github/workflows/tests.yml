@@ -1,0 +1,17 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # PDF testleri sistem fontlarına bakıyor; geliştirme ortamıyla aynı olsun diye Windows.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test CvTailor.sln --configuration Release
