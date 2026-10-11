@@ -39,7 +39,7 @@
             </div>
             <p class="ct-match-note">${esc(item.note)}</p>
             ${item.evidence.length ? `<ul class="ct-evidence">${item.evidence.map(e => `
-              <li><span class="ct-evidence-kind">${EVIDENCE[e.kind] || e.kind}</span> ${esc(e.text)}${e.where && e.kind !== "experience" ? ` <span class="ct-muted">· ${esc(e.where)}</span>` : ""}${e.term && e.term.includes("→") ? ` <span class="ct-muted">(${esc(e.term)})</span>` : ""}</li>`).join("")}</ul>` : ""}
+              <li><span class="ct-evidence-kind">${EVIDENCE[e.kind] || e.kind}</span> ${esc(e.text)}${e.where && ["achievement", "projectAchievement", "duration"].includes(e.kind) ? ` <span class="ct-muted">· ${esc(e.where)}</span>` : ""}${e.term && e.term.includes("→") ? ` <span class="ct-muted">(${esc(e.term)})</span>` : ""}</li>`).join("")}</ul>` : ""}
           </li>`).join("")}
         </ul>
       </section>`;
