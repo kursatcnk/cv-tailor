@@ -53,6 +53,18 @@ namespace CvTailor.Tests
         }
 
         [Fact]
+        public void Vague_alternatives_are_not_offered()
+        {
+            var bullet = Bullet("API'yi geliştirdim.", "f1");
+            bullet.Alternatives = new() { "API geliştirmelerinde görev aldım.", "Servisin API katmanını yazdım." };
+            var output = new RewriteOutput { Entries = { new RewriteEntry { Id = "e1", Bullets = { bullet } } } };
+
+            var alternatives = BulletRewriter.Clean(output, Input()).Entries[0].Bullets[0].Alternatives;
+
+            Assert.Equal(new[] { "Servisin API katmanını yazdım." }, alternatives);
+        }
+
+        [Fact]
         public void Summary_without_real_sources_is_dropped()
         {
             var output = new RewriteOutput { Summary = new RewriteSummary { Text = "Deneyimli geliştirici.", Sources = new() { "f99" } } };

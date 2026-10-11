@@ -11,6 +11,7 @@ namespace CvTailor.Api.Services.Tailoring
     public class BulletRewriter
     {
         private const int MaxBulletLength = 300;
+        private static readonly string[] VaguePhrases = { "görev aldım", "yer aldım", "katılım sağladım", "sorumluydum", "çeşitli" };
         private readonly AiService _ai;
 
         public BulletRewriter(AiService ai) => _ai = ai;
@@ -78,7 +79,10 @@ namespace CvTailor.Api.Services.Tailoring
                         Text = Clip(bullet.Text),
                         Sources = sources,
                         Requirements = (bullet.Requirements ?? new()).Where(r => input.Requirements.Any(x => x.Key == r)).Distinct().ToList(),
-                        Alternatives = (bullet.Alternatives ?? new()).Where(a => !string.IsNullOrWhiteSpace(a)).Select(a => Clip(a)).Take(2).ToList(),
+                        // Küçük modeller "sadece başka türlü yaz" deyince belirsiz kalıplara dönebiliyor; o alternatifleri göstermiyoruz.
+                        Alternatives = (bullet.Alternatives ?? new())
+                            .Where(a => !string.IsNullOrWhiteSpace(a) && !VaguePhrases.Any(v => a.Contains(v, StringComparison.OrdinalIgnoreCase)))
+                            .Select(a => Clip(a)).Take(2).ToList(),
                         Reason = bullet.Reason?.Trim() ?? ""
                     });
                 }
@@ -123,7 +127,7 @@ namespace CvTailor.Api.Services.Tailoring
             {
                 sb.AppendLine($"  <{entry.Kind} id=\"{entry.Token}\" title=\"{Escape(entry.Title)}\" at=\"{Escape(entry.Subtitle ?? "")}\">");
                 foreach (var fact in entry.Facts)
-                    sb.AppendLine($"    <fact id=\"{fact.Token}\"{(fact.FromInterview ? " source=\"interview\"" : "")}>{Escape(fact.Text)}</fact>");
+                    sb.AppendLine($"    <fact id=\"{fact.Token}\"{(fact.FromInterview ? " source=\"answer\"" : "")}>{Escape(fact.Text)}</fact>");
                 sb.AppendLine($"  </{entry.Kind}>");
             }
             sb.AppendLine("</candidate>");
@@ -134,7 +138,7 @@ namespace CvTailor.Api.Services.Tailoring
 
         private const string SystemPrompt = """
             You rewrite a candidate's CV bullets for a specific job (inside <target>), using ONLY the facts inside <candidate>.
-            Facts marked source="interview" are the candidate's own answers to follow-up questions; treat them as true facts.
+            Facts marked source="answer" are the candidate's own answers to our follow-up questions; treat them as true facts. In reasons call them "sorulara verdiğin cevap", never "mülakat".
 
             Hard rules (a program checks them; a bullet that breaks them is shown to the candidate in red):
             - Every bullet lists the fact ids it is based on in "sources". Only use facts from the same job/project the bullet belongs to.
@@ -149,9 +153,13 @@ namespace CvTailor.Api.Services.Tailoring
             - Remove vague phrases ("görev aldım", "sorumluydum", "çeşitli") by saying what was actually done, as far as the facts allow.
             - One or two lines (max ~220 characters).
 
+            When a fact is too vague to improve without inventing details (e.g. "Web sitesi geliştirmelerinde görev aldım"):
+            - Keep the bullet close to the original. Do not fill the gap with guesses.
+            - Use "reason" to teach what is missing, e.g. "Bu madde ne yaptığını söylemiyor. Hangi sayfaları/özellikleri geliştirdiğini ve sonucunu kasana eklersen güçlü bir maddeye dönüşür."
+
             For each bullet also give:
             - "requirements": keys of the target requirements this bullet proves.
-            - "alternatives": two other phrasings that follow the same rules.
+            - "alternatives": two other phrasings that follow exactly the same rules (no new facts, no vague words such as "çeşitli", "görev aldım", "yer aldım", "sorumluydum").
             - "reason": one Turkish sentence for the candidate explaining what you changed and why, e.g. "İlan ASP.NET Core istiyor; teknolojiyi başa aldım ve 'görev aldım' yerine ne yaptığını yazdım."
 
             Summary: two or three sentences in Turkish for the top of the CV, aimed at this job, built only from facts (use y1 for total experience and s0 for the candidate's own summary if present).
