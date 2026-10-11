@@ -71,6 +71,8 @@ namespace CvTailor.Api.Services.Interview
                     ProjectId = parent.Value.ProjectId,
                     Text = text.Length <= 1000 ? text : text[..1000],
                     Source = "interview",
+                    // Rakam sorusunun cevabı, sorulan maddeye bağlı; CV'ye onunla birlikte giriyor.
+                    RelatedId = current[answer.Key].AchievementId,
                     SortOrder = nextOrder + 1,
                     CreatedAt = DateTime.UtcNow
                 });

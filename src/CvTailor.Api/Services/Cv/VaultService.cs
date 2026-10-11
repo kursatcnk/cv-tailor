@@ -112,6 +112,7 @@ namespace CvTailor.Api.Services.Cv
                 // Metni değişen maddenin kaynağı korunuyor; CV'den geldiyse kullanıcı düzeltse de "cv" kalıyor.
                 a.Text = d.Text!;
                 a.Source = d.Source!;
+                a.RelatedId = d.RelatedId;
                 a.SortOrder = i;
             });
 
@@ -190,7 +191,7 @@ namespace CvTailor.Api.Services.Cv
         };
 
         private static List<AchievementDto> ToDto(IEnumerable<Achievement> items) =>
-            items.OrderBy(a => a.SortOrder).Select(a => new AchievementDto { Id = a.Id, Text = a.Text, Source = a.Source }).ToList();
+            items.OrderBy(a => a.SortOrder).Select(a => new AchievementDto { Id = a.Id, Text = a.Text, Source = a.Source, RelatedId = a.RelatedId }).ToList();
     }
 
     public class VaultResponse

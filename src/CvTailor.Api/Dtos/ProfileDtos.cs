@@ -62,6 +62,8 @@ namespace CvTailor.Api.Dtos
         public Guid? Id { get; set; }
         public string? Text { get; set; }
         public string? Source { get; set; }
+        // Rakam sorusunun cevabıysa ait olduğu madde
+        public Guid? RelatedId { get; set; }
     }
 
     public class SkillDto

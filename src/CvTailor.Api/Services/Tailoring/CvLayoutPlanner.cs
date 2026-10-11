@@ -78,21 +78,31 @@ namespace CvTailor.Api.Services.Tailoring
         }
 
         // Bir iş/projeden en ilgili maddeler; ilgisi aynıysa CV'deki sırası korunuyor.
+        // Rakam sorusunun cevabı (RelatedId) kendi başına yarışmıyor: ait olduğu maddenin puanına ekleniyor
+        // ve o maddeyle birlikte seçiliyor ya da çıkarılıyor.
         private static CvSelectedEntry Pick(string kind, Guid id, List<AchievementDto> achievements, int max, CvSelection selection)
         {
+            var ids = achievements.Where(a => a.Id != null).Select(a => a.Id!.Value).ToHashSet();
+            var attached = achievements.Where(a => a.Id != null && a.RelatedId != null && ids.Contains(a.RelatedId.Value)).ToList();
+            var answersOf = attached.ToLookup(a => a.RelatedId!.Value);
+            double Score(AchievementDto a) =>
+                selection.Scores.GetValueOrDefault(a.Id!.Value) + answersOf[a.Id!.Value].Sum(x => selection.Scores.GetValueOrDefault(x.Id!.Value));
+
             var ordered = achievements
-                .Where(a => a.Id != null)
+                .Where(a => a.Id != null && !attached.Contains(a))
                 .Select((a, i) => (Achievement: a, Order: i))
-                .OrderByDescending(x => selection.Scores.GetValueOrDefault(x.Achievement.Id!.Value))
+                .OrderByDescending(x => Score(x.Achievement))
                 .ThenBy(x => x.Order)
                 .ToList();
-            foreach (var extra in ordered.Skip(max))
-                selection.Dropped.Add(new CvDrop { Kind = "bullet", SourceId = extra.Achievement.Id, Text = extra.Achievement.Text ?? "", Reason = "Bu iş için ilana en uygun maddeler seçildi; bu madde ilanla daha az ilgili." });
+            foreach (var extra in ordered.Skip(max).SelectMany(x => answersOf[x.Achievement.Id!.Value].Prepend(x.Achievement)))
+                selection.Dropped.Add(new CvDrop { Kind = "bullet", SourceId = extra.Id, Text = extra.Text ?? "", Reason = "Bu iş için ilana en uygun maddeler seçildi; bu madde ilanla daha az ilgili." });
             return new CvSelectedEntry
             {
                 Kind = kind,
                 SourceId = id,
-                Facts = ordered.Take(max).OrderBy(x => x.Order).Select(x => x.Achievement).ToList()
+                Facts = ordered.Take(max).OrderBy(x => x.Order)
+                    .SelectMany(x => answersOf[x.Achievement.Id!.Value].Prepend(x.Achievement))
+                    .ToList()
             };
         }
 

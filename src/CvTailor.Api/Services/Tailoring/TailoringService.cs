@@ -219,11 +219,14 @@ namespace CvTailor.Api.Services.Tailoring
                 tokens[token] = entry.SourceId;
                 var (title, subtitle) = Titles(entry, profile);
                 var inputEntry = new RewriteInputEntry { Token = token, Kind = entry.Kind, Title = title, Subtitle = subtitle };
+                // Önce bu işin bütün maddelerine etiket ver; rakam cevabı, bağlı olduğu maddenin etiketini gösterebilsin.
+                var local = entry.Facts.ToDictionary(f => f.Id!.Value, _ => $"f{factIndex++}");
                 foreach (var fact in entry.Facts)
                 {
-                    var factToken = $"f{factIndex++}";
+                    var factToken = local[fact.Id!.Value];
                     tokens[factToken] = fact.Id!.Value;
-                    inputEntry.Facts.Add(new RewriteFact(factToken, fact.Text ?? "", fact.Source == "interview"));
+                    var addsTo = fact.RelatedId is Guid related && local.TryGetValue(related, out var t) ? t : null;
+                    inputEntry.Facts.Add(new RewriteFact(factToken, fact.Text ?? "", fact.Source == "interview", addsTo));
                 }
                 input.Entries.Add(inputEntry);
             }

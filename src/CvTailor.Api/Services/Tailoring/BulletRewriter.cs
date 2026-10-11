@@ -127,7 +127,7 @@ namespace CvTailor.Api.Services.Tailoring
             {
                 sb.AppendLine($"  <{entry.Kind} id=\"{entry.Token}\" title=\"{Escape(entry.Title)}\" at=\"{Escape(entry.Subtitle ?? "")}\">");
                 foreach (var fact in entry.Facts)
-                    sb.AppendLine($"    <fact id=\"{fact.Token}\"{(fact.FromInterview ? " source=\"answer\"" : "")}>{Escape(fact.Text)}</fact>");
+                    sb.AppendLine($"    <fact id=\"{fact.Token}\"{(fact.FromInterview ? " source=\"answer\"" : "")}{(fact.AddsTo != null ? $" adds-to=\"{fact.AddsTo}\"" : "")}>{Escape(fact.Text)}</fact>");
                 sb.AppendLine($"  </{entry.Kind}>");
             }
             sb.AppendLine("</candidate>");
@@ -144,7 +144,8 @@ namespace CvTailor.Api.Services.Tailoring
             - Every bullet lists the fact ids it is based on in "sources". Only use facts from the same job/project the bullet belongs to.
             - Never add a number, percentage, duration, technology, tool, company, product, title or achievement that is not in the source facts. If a fact has no number, the bullet has no number.
             - Do not upgrade the candidate's role ("helped" must not become "led", "took part in" must not become "managed").
-            - Use every fact exactly once. You may merge at most two facts of the same job into one bullet when they describe the same work (for example an original bullet and the interview answer that adds its numbers).
+            - Use every fact exactly once. You may merge at most two facts of the same job into one bullet when they describe the same work.
+            - A fact with adds-to="fX" is the candidate's answer that adds details (usually numbers) to fact fX. Always merge it into the bullet for fX; that bullet's sources must list both ids.
             - Write in the same language as the facts (normally Turkish), first person past tense without the pronoun ("geliştirdim", "azalttım"), consistent across all bullets.
 
             How to make a bullet strong:
@@ -201,7 +202,8 @@ namespace CvTailor.Api.Services.Tailoring
         public List<RewriteFact> Facts { get; set; } = new();
     }
 
-    public record RewriteFact(string Token, string Text, bool FromInterview);
+    // AddsTo: rakam sorusunun cevabıysa detay eklediği maddenin etiketi; AI ikisini tek madde yapıyor.
+    public record RewriteFact(string Token, string Text, bool FromInterview, string? AddsTo = null);
 
     public class RewriteOutput
     {

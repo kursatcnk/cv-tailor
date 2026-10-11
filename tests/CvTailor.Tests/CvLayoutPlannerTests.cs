@@ -58,6 +58,43 @@ namespace CvTailor.Tests
         }
 
         [Fact]
+        public void Number_answer_travels_with_the_bullet_it_belongs_to()
+        {
+            var profile = Profile();
+            var job = profile.Experiences[0];
+            var report = job.Achievements[1]; // "Raporlama sorgularını SQL Server üzerinde iyileştirdim."
+            for (var i = 0; i < 4; i++)
+                job.Achievements.Insert(0, new AchievementDto { Id = Guid.NewGuid(), Text = $"ASP.NET Core ile servis {i} geliştirdim." });
+            var answer = new AchievementDto { Id = Guid.NewGuid(), Text = "Ekran 9 saniyeden 2 saniyeye indi.", Source = "interview", RelatedId = report.Id };
+            job.Achievements.Add(answer);
+
+            var facts = Select(profile, Requirement("SQL Server bilgisi", "technical", "SQL Server")).Entries[0].Facts;
+
+            // Cevap kendi başına elenmiyor; ait olduğu maddenin hemen arkasında ve sınır (5) hesabına girmiyor.
+            var index = facts.IndexOf(report);
+            Assert.True(index >= 0);
+            Assert.Same(answer, facts[index + 1]);
+            Assert.Equal(6, facts.Count);
+        }
+
+        [Fact]
+        public void Number_answer_is_dropped_together_with_its_bullet()
+        {
+            var profile = Profile();
+            var job = profile.Experiences[0];
+            var vague = new AchievementDto { Id = Guid.NewGuid(), Text = "Toplantılara katıldım." };
+            job.Achievements.Add(vague);
+            job.Achievements.Add(new AchievementDto { Id = Guid.NewGuid(), Text = "Haftada 3 toplantı.", Source = "interview", RelatedId = vague.Id });
+            for (var i = 0; i < 5; i++)
+                job.Achievements.Insert(0, new AchievementDto { Id = Guid.NewGuid(), Text = $"ASP.NET Core ile servis {i} geliştirdim." });
+
+            var selection = Select(profile, Requirement("ASP.NET Core bilgisi", "technical", "ASP.NET Core"));
+
+            Assert.DoesNotContain(selection.Entries[0].Facts, f => f.Text!.Contains("toplantı", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(selection.Dropped, d => d.Text == "Haftada 3 toplantı.");
+        }
+
+        [Fact]
         public void Fit_removes_lowest_scored_bullets_until_the_page_fits_but_keeps_one_per_job()
         {
             var document = new CvDocument();
