@@ -44,6 +44,17 @@ namespace CvTailor.Api.Controllers
         public async Task<IActionResult> UpdateChange(Guid id, string changeId, [FromBody] UpdateChangeRequest request, CancellationToken cancellationToken) =>
             ToResult(await _tailoring.UpdateChangeAsync(User.GetUserId(), id, changeId, request, cancellationToken));
 
+        // Basılan metin her maddenin son kararına göre (kabul → yeni hâli, değilse orijinali).
+        [HttpGet("{id:guid}/pdf")]
+        public async Task<IActionResult> Pdf(Guid id, CancellationToken cancellationToken)
+        {
+            var cv = await _tailoring.GetAsync(User.GetUserId(), id, cancellationToken);
+            if (cv == null) return NotFound(MessageResponse.Fail("CV bulunamadı."));
+            var name = string.Join("-", new[] { cv.Document.Header.FullName, cv.TargetTitle, "CV" }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            var fileName = string.Concat(name.Select(ch => char.IsLetterOrDigit(ch) || ch == '-' ? ch : '-')).Trim('-') + ".pdf";
+            return File(CvPdfRenderer.Render(cv), "application/pdf", fileName);
+        }
+
         [HttpPost("{id:guid}/approve")]
         public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken) =>
             ToResult(await _tailoring.ApproveAsync(User.GetUserId(), id, cancellationToken));

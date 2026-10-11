@@ -181,7 +181,8 @@
         ${versions.length ? `<ul class="ct-versions">${versions.map((v, i) => `
           <li><a href="#review:${v.id}">${i === 0 ? "Son sürüm" : `Sürüm ${versions.length - i}`}</a>
             <span class="ct-badge ${v.status === "ready" ? "is-strong" : "is-unknown"}">${v.status === "ready" ? "Onaylandı" : "Taslak"}</span>
-            <span class="ct-muted">${dateFormat.format(new Date(v.createdAt))}</span></li>`).join("")}</ul>` : ""}
+            <span class="ct-muted">${dateFormat.format(new Date(v.createdAt))}</span>
+            <a href="/api/cvs/${v.id}/pdf">PDF</a></li>`).join("")}</ul>` : ""}
       </section>`;
   }
 

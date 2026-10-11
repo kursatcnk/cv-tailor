@@ -154,6 +154,9 @@ builder.Services.AddSingleton<IAiProvider, GeminiProvider>();
 builder.Services.AddSingleton<IAiProvider, DeepSeekProvider>();
 builder.Services.AddSingleton<AiService>();
 
+// QuestPDF: kişisel ve küçük ticari kullanım için ücretsiz Community lisansı.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 var app = builder.Build();
 
 // Bekleyen migration'lar açılışta uygulanıyor, sunucuda elle SQL çalıştırmaya gerek kalmıyor.

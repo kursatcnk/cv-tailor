@@ -90,11 +90,13 @@
         </div>
         <div class="ct-actions">
           <a class="ct-button ct-button-secondary" href="#cvs">CV'lerim</a>
+          <a class="ct-button ct-button-secondary" href="/api/cvs/${cv.id}/pdf">PDF indir</a>
           <button class="ct-button" type="button" data-act="approve">${cv.status === "ready" ? "Onaylandı" : "CV'yi onayla"}</button>
         </div>
       </header>
       ${notes.length ? `<div class="ct-review"><ul>${notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>` : ""}
       <p class="ct-summary-line">${rewritten} madde yeniden yazıldı${pending ? ` · <strong>${pending} madde onay bekliyor</strong>` : ""} · ${doc.dropped.length} öğe CV'ye girmedi</p>
+      <p class="ct-hint">PDF her maddenin son hâliyle basılır: kabul ettiklerin yeni hâliyle, diğerleri orijinaliyle.</p>
 
       ${doc.summaryChangeId && byId[doc.summaryChangeId] ? `<section class="ct-card"><h2>Özet</h2>${renderChange(byId[doc.summaryChangeId])}</section>` : ""}
       ${doc.experiences.length ? `<section class="ct-card"><h2>Deneyim</h2>${doc.experiences.map(e => renderEntry(e, byId)).join("")}</section>` : ""}
