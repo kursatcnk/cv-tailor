@@ -75,7 +75,7 @@ namespace CvTailor.Api.Services.Cv
             - Split comma separated skill lists into separate skills.
             - headline: the job title line under the name, if there is one. summary: the profile/about paragraph, copied exactly, if there is one.
             - Projects are things the person built outside a job (personal, school, open source). Put a project's bullets in its achievements.
-            - Personal data is replaced by placeholders such as [EPOSTA_1], [TELEFON_1], [LINK_1]. Copy a placeholder exactly as written into the matching field (email, phone, linkedInUrl, gitHubUrl, websiteUrl, project url).
+            - Personal data is replaced by placeholders: [EPOSTA_n] email, [TELEFON_n] phone, [LINKEDIN_n] LinkedIn, [GITHUB_n] GitHub (profile or a project repository), [LINK_n] other links. Copy a placeholder exactly as written into the matching field (email, phone, linkedInUrl, gitHubUrl, websiteUrl, project url).
             - Leave a field null when the CV does not contain it. Never guess emails, phone numbers, links or dates.
             - Set every "id" to null and every achievement "source" to "cv".
 

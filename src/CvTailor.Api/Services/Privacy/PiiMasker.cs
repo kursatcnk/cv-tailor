@@ -32,7 +32,7 @@ namespace CvTailor.Api.Services.Privacy
             var name = profile.FullName?.Trim();
             var parts = name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(p => p.Length >= 3) ?? Enumerable.Empty<string>();
             return new PiiMask(new[] { (name, "KISI"), (profile.Email, "EPOSTA"), (profile.Phone, "TELEFON"),
-                    (profile.LinkedInUrl, "LINK"), (profile.GitHubUrl, "LINK"), (profile.WebsiteUrl, "LINK") }
+                    (profile.LinkedInUrl, "LINKEDIN"), (profile.GitHubUrl, "GITHUB"), (profile.WebsiteUrl, "LINK") }
                 .Concat(parts.Select(p => ((string?)p, "KISI"))));
         }
 
@@ -43,12 +43,18 @@ namespace CvTailor.Api.Services.Privacy
             foreach (var (value, placeholder) in _known)
                 result = Regex.Replace(result, $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(value)}(?![\p{{L}}\p{{N}}])", placeholder, RegexOptions.IgnoreCase);
             result = Email.Replace(result, m => Next("EPOSTA", m.Value));
-            result = Url.Replace(result, m => Next("LINK", m.Value));
+            // Linkin türü yer tutucuda kalsın; yoksa AI CV'yi ayrıştırırken [LINK_1]'in LinkedIn mi GitHub mı olduğunu bilemiyor.
+            result = Url.Replace(result, m => Next(LinkKind(m.Value), m.Value));
             result = Iban.Replace(result, m => Next("IBAN", m.Value));
             result = Eleven.Replace(result, m => PiiScanner.IsTckn(m.Value) ? Next("TCKN", m.Value) : m.Value);
             result = Phone.Replace(result, m => Next("TELEFON", m.Value));
             return result;
         }
+
+        private static string LinkKind(string url) =>
+            url.Contains("linkedin.com", StringComparison.OrdinalIgnoreCase) ? "LINKEDIN"
+            : url.Contains("github.com", StringComparison.OrdinalIgnoreCase) ? "GITHUB"
+            : "LINK";
 
         public string Unmask(string? text)
         {

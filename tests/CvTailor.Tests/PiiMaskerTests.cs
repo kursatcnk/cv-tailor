@@ -53,6 +53,14 @@ namespace CvTailor.Tests
         }
 
         [Fact]
+        public void Link_placeholders_keep_their_kind()
+        {
+            // AI CV'yi ayrıştırırken hangi linkin LinkedIn, hangisinin GitHub olduğunu yer tutucudan anlıyor.
+            var masked = PiiMask.ForProfile(new ProfileDto()).Mask("linkedin.com/in/deniz-ornek · github.com/deniz-ornek · behance.net/deniz");
+            Assert.Equal("[LINKEDIN_1] · [GITHUB_1] · [LINK_1]", masked);
+        }
+
+        [Fact]
         public void Same_value_gets_the_same_placeholder()
         {
             var mask = PiiMask.ForProfile(new ProfileDto());
