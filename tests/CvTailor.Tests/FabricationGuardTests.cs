@@ -40,6 +40,8 @@ namespace CvTailor.Tests
         {
             // Kaynak SQL Server diyor, madde ilanın kelimesiyle MSSQL diyor.
             Assert.Equal("verified", _guard.Check("MSSQL raporlama sorgularını iyileştirdim; günde 1.500 sipariş işleniyordu.", Source, PostingTerms).Status);
+            // Cümle ortasında da: önce özel ad kontrolü bunu "kaynakta geçmeyen ad" sanıyordu.
+            Assert.Equal("verified", _guard.Check("Raporlama sorgularını MSSQL üzerinde iyileştirdim.", Source, PostingTerms).Status);
             // Kaynak GitHub Actions diyor, madde CI/CD diyor.
             Assert.Equal("verified", _guard.Check("GitHub Actions ile CI/CD akışı kurdum.", "Her pull request için GitHub Actions ile build çalıştıran bir akış kurdum.", PostingTerms).Status);
         }

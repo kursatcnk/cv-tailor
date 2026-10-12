@@ -52,7 +52,10 @@ namespace CvTailor.Api.Services.Tailoring
                 var word = m.Value.TrimEnd('.');
                 if (m.Index == 0 || Regex.IsMatch(text[..m.Index], @"[.!?:]\s*$")) continue;
                 if (word.Length < 3 || Common.Contains(word) || added.Any(a => a.Equals(word, StringComparison.OrdinalIgnoreCase))) continue;
-                var stem = SkillDictionary.Normalize(word.Split('\'')[0]);
+                var bare = word.Split('\'')[0];
+                // Sözlükte olan ve eşdeğeri kaynakta geçen terim özel ad uydurması değil: kaynak "SQL Server", madde "MSSQL".
+                if (_dictionary.EvidenceTerms(bare).Any(t => _dictionary.Contains(sourceText, t, strict: false))) continue;
+                var stem = SkillDictionary.Normalize(bare);
                 if (stem.Length >= 3 && !source.Contains(stem[..Math.Max(3, stem.Length - 2)]))
                     issues.Add($"Kaynakta geçmeyen ad: {word}");
             }
