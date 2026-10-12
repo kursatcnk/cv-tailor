@@ -48,7 +48,72 @@
     state.dirty = dirty;
     $("#ct-savebar").hidden = !dirty;
     $("#ct-savebar-text").textContent = state.reviewing ? "Okunan bilgiler henüz kasaya kaydedilmedi." : "Kaydedilmemiş değişiklikler var.";
+    scheduleHealth();
   }
+
+  // ---- Sağlık kontrolü ----
+  // Kaydedilmemiş form da kontrol ediliyor; yazarken her tuşta değil, durunca bir kez.
+
+  const LEVELS = { error: "hata", warn: "uyarı", info: "öneri" };
+  let healthTimer = 0;
+  let healthRequest = 0;
+
+  function scheduleHealth() {
+    clearTimeout(healthTimer);
+    healthTimer = setTimeout(checkHealth, 700);
+  }
+
+  async function checkHealth() {
+    const panel = $("#ct-health");
+    const p = state.profile;
+    if (!p || p.experiences.length + p.projects.length === 0) { panel.hidden = true; return; }
+    const request = ++healthRequest;
+    const { ok, data } = await session.api.post("/api/vault/health", p);
+    // Bu arada yeni bir kontrol başladıysa eski cevabı çizme.
+    if (!ok || request !== healthRequest) return;
+    renderHealth(data);
+  }
+
+  function renderHealth(report) {
+    const panel = $("#ct-health");
+    panel.hidden = false;
+    const counts = Object.keys(LEVELS).map(level => [level, report.issues.filter(i => i.level === level).length]).filter(([, n]) => n);
+    $("#ct-health-count").innerHTML = counts.length
+      ? counts.map(([level, n]) => `${n} ${LEVELS[level]}`).join(" · ")
+      : `<span class="ct-health-ok">Sorun bulunmadı</span>`;
+    // Oran düşükse zaten listede bir öneri olarak var; ikinci kez yazma.
+    $("#ct-health-stats").textContent = report.bullets && !report.issues.some(i => i.code === "few-numbers")
+      ? `${report.bullets} maddenin ${report.bulletsWithNumbers} tanesinde rakam var.`
+      : "";
+    $("#ct-health-list").innerHTML = report.issues.map(i => `
+      <li class="is-${i.level}">
+        <small>${esc(i.where)}</small>
+        <strong>${esc(i.message)}</strong>
+        <p>${esc(i.hint)}</p>
+        ${i.path ? `<button type="button" data-goto="${esc(i.path)}">Göster</button>` : ""}
+      </li>`).join("");
+    if (report.issues.some(i => i.level === "error")) panel.open = true;
+  }
+
+  // Sorunun yolu formdaki alana çevriliyor: "experiences.0" → pozisyon alanı, "contact" → e-posta.
+  function fieldFor(path) {
+    if (path === "contact") return "email";
+    if (/\.achievements\.\d+$/.test(path)) return `${path}.text`;
+    if (/^(experiences|projects)\.\d+$/.test(path)) return `${path}.${path.startsWith("projects") ? "name" : "title"}`;
+    return path;
+  }
+
+  $("#ct-health-list").addEventListener("click", event => {
+    const path = event.target.dataset.goto;
+    if (!path) return;
+    const input = $("#ct-editor").querySelector(`[data-bind="${fieldFor(path)}"]`);
+    if (!input) return;
+    input.scrollIntoView({ behavior: "smooth", block: "center" });
+    input.focus({ preventScroll: true });
+    input.classList.remove("ct-flash");
+    void input.offsetWidth;
+    input.classList.add("ct-flash");
+  });
 
   function showReview(data) {
     state.reviewing = Boolean(data);

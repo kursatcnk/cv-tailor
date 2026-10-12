@@ -128,6 +128,25 @@ select.ct-input { padding: 0 8px; }
 .ct-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
 .ct-editor-layout:has(.ct-source:not([hidden])) { grid-template-columns: minmax(0, 1fr) 320px; }
 .ct-editor { display: grid; gap: 16px; }
+.ct-editor-col { display: grid; gap: 16px; min-width: 0; }
+
+/* Sağlık kontrolü */
+.ct-health { padding: 0; }
+.ct-health summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; cursor: pointer; list-style: none; }
+.ct-health summary::-webkit-details-marker { display: none; }
+.ct-health summary span { font-size: 12.5px; color: var(--muted); }
+.ct-health[open] summary { border-bottom: 1px solid var(--border); }
+.ct-health > .ct-hint { margin: 12px 18px 0; }
+.ct-health-list { display: grid; gap: 6px; max-height: 420px; overflow: auto; margin: 0; padding: 12px 18px 16px; list-style: none; }
+.ct-health-list li { display: grid; gap: 2px; padding: 8px 10px; border-left: 3px solid var(--border-strong); border-radius: 0 6px 6px 0; background: var(--surface-2); font-size: 13px; }
+.ct-health-list li.is-error { border-left-color: var(--danger); }
+.ct-health-list li.is-warn { border-left-color: var(--warning); }
+.ct-health-list li small { color: var(--muted); }
+.ct-health-list li p { margin: 0; color: var(--text-2); }
+.ct-health-list button { justify-self: start; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12.5px; cursor: pointer; }
+.ct-health-ok { color: var(--success); }
+.ct-flash { animation: ct-flash 1.2s ease-out; }
+@keyframes ct-flash { from { box-shadow: 0 0 0 3px var(--accent); } to { box-shadow: 0 0 0 3px transparent; } }
 .ct-summary-line { font-size: 13px; color: var(--muted); }
 .ct-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .ct-section-head span { font-size: 12.5px; color: var(--muted); }

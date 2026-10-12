@@ -1,5 +1,6 @@
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Services.Cv;
+using CvTailor.Api.Services.Quality;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,5 +23,10 @@ namespace CvTailor.Api.Controllers
         [HttpPut]
         public async Task<ActionResult<VaultResponse>> Save([FromBody] ProfileDto profile, CancellationToken cancellationToken) =>
             Ok(await _vault.SaveAsync(User.GetUserId(), profile, cancellationToken));
+
+        // Formdaki (henüz kaydedilmemiş olabilir) profilin sağlık kontrolü. AI yok, kota harcamıyor.
+        [HttpPost("health")]
+        public ActionResult<HealthReport> Health([FromBody] ProfileDto profile) =>
+            Ok(CvHealthCheck.Check(profile, DateTime.Today));
     }
 }
