@@ -1,6 +1,7 @@
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Services.Cv;
 using CvTailor.Api.Services.Matching;
+using CvTailor.Api.Services.Tailoring;
 using static CvTailor.Tests.TestData;
 
 namespace CvTailor.Tests
@@ -78,6 +79,42 @@ namespace CvTailor.Tests
             Assert.Null(profile.MilitaryDeferredUntil);
             Assert.Equal("B", profile.DriverLicense);
             Assert.Null(ProfileNormalizer.Normalize(new ProfileDto { MilitaryStatus = "yapıldı" }, "manual").MilitaryStatus);
+        }
+
+        private static ProfileDto Filled()
+        {
+            var profile = Profile();
+            profile.MilitaryStatus = "exempt";
+            profile.DriverLicense = "B";
+            profile.CanTravel = true;
+            return profile;
+        }
+
+        [Fact]
+        public void Cv_prints_only_what_the_posting_asks()
+        {
+            var target = new TargetDto { Analysis = Analysis(Requirement("B sınıfı ehliyet", "other"), Requirement("ASP.NET Core", "technical", "ASP.NET Core")) };
+            Assert.Equal(new[] { "Ehliyet: B sınıfı" }, TailoringService.PersonalLines(target, Filled()));
+        }
+
+        [Fact]
+        public void Profession_target_prints_every_filled_detail()
+        {
+            var target = new TargetDto { ProfessionKey = "backend-developer" };
+            Assert.Equal(new[] { "Askerlik: Muaf", "Ehliyet: B sınıfı", "Seyahat engeli yok" }, TailoringService.PersonalLines(target, Filled()));
+        }
+
+        [Fact]
+        public void Personal_line_reaches_both_downloads()
+        {
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            var cv = CvPdfRendererTests.Cv();
+            cv.Document.Header.Personal = new() { "Askerlik: Muaf", "Ehliyet: B sınıfı" };
+
+            var pdf = new CvTextExtractor().Extract(new MemoryStream(CvPdfRenderer.Render(cv)), "cv.pdf").Text;
+            var docx = new CvTextExtractor().Extract(new MemoryStream(CvDocxRenderer.Render(cv)), "cv.docx").Text;
+            Assert.Contains("Askerlik: Muaf · Ehliyet: B sınıfı", pdf.Replace("  ", " "));
+            Assert.Contains("Askerlik: Muaf  ·  Ehliyet: B sınıfı", docx);
         }
     }
 }

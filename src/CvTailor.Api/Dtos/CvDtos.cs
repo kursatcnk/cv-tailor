@@ -27,6 +27,8 @@ namespace CvTailor.Api.Dtos
         public string? Phone { get; set; }
         public string? Location { get; set; }
         public List<string> Links { get; set; } = new();
+        // "Askerlik: Tamamlandı", "Ehliyet: B sınıfı"; sadece ilan istediyse (meslek hedefinde dolu olanların hepsi).
+        public List<string> Personal { get; set; } = new();
     }
 
     public class CvEntry

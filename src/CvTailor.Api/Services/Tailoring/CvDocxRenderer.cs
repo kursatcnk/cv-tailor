@@ -32,7 +32,9 @@ namespace CvTailor.Api.Services.Tailoring
                 body.Append(Paragraph(new[] { Run(h.FullName ?? "", bold: true, size: 36) }, after: 40));
                 if (!string.IsNullOrEmpty(h.Headline)) body.Append(Paragraph(new[] { Run(h.Headline, size: 22, color: Muted) }, after: 40));
                 var contact = new[] { h.Email, h.Phone, h.Location }.Concat(h.Links).Where(x => !string.IsNullOrEmpty(x));
-                body.Append(Paragraph(new[] { Run(string.Join("  ·  ", contact), size: 18, color: Muted) }, after: 160));
+                body.Append(Paragraph(new[] { Run(string.Join("  ·  ", contact), size: 18, color: Muted) }, after: h.Personal.Count > 0 ? 40 : 160));
+                if (h.Personal.Count > 0)
+                    body.Append(Paragraph(new[] { Run(string.Join("  ·  ", h.Personal), size: 18, color: Muted) }, after: 160));
 
                 if (doc.SummaryChangeId != null && changes.TryGetValue(doc.SummaryChangeId, out var summary) && !string.IsNullOrWhiteSpace(summary.FinalText))
                     body.Append(Paragraph(new[] { Run(summary.FinalText) }, after: 160));

@@ -105,6 +105,7 @@ namespace CvTailor.Api.Services.Tailoring
                 if (!string.IsNullOrEmpty(h.Headline)) c.Item().Text(h.Headline).FontSize(11).FontColor(Muted);
                 var contact = new[] { h.Email, h.Phone, h.Location }.Concat(h.Links).Where(x => !string.IsNullOrEmpty(x));
                 c.Item().Text(string.Join("  ·  ", contact)).FontSize(9).FontColor(Muted);
+                if (h.Personal.Count > 0) c.Item().Text(string.Join("  ·  ", h.Personal)).FontSize(9).FontColor(Muted);
             });
         }
 

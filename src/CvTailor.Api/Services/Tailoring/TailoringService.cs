@@ -275,6 +275,23 @@ namespace CvTailor.Api.Services.Tailoring
 
         // ---- Belge ----
 
+        // Askerlik, ehliyet, seyahat CV'ye sadece ilan sorduysa giriyor; sormayan ilanda yer kaplıyor ve gereksiz kişisel
+        // bilgi oluyor. İlansız (meslek) hedefte hangi ilana gideceği belli değil, dolu olanların hepsi yazılıyor.
+        public static List<string> PersonalLines(TargetDto target, ProfileDto profile)
+        {
+            var asked = target.ProfessionKey != null
+                ? null
+                : target.Analysis.Requirements
+                    .Where(r => r.Category == "other" && r.Text != null)
+                    .Select(r => PersonalRequirements.KindOf(r.Text!))
+                    .ToHashSet();
+            return new[] { PersonalRequirements.Military, PersonalRequirements.License, PersonalRequirements.Travel }
+                .Where(kind => asked == null || asked.Contains(kind))
+                .Select(kind => PersonalRequirements.Label(profile, kind))
+                .OfType<string>()
+                .ToList();
+        }
+
         private (CvDocument, List<CvChange>, Dictionary<string, double>) Assemble(TargetDto target, ProfileDto profile, MatchResult match,
             CvSelection selection, RewriteInput input, RewriteOutput output, Dictionary<string, Guid> tokens)
         {
@@ -293,7 +310,8 @@ namespace CvTailor.Api.Services.Tailoring
                     Links = new[] { profile.LinkedInUrl, profile.GitHubUrl, profile.WebsiteUrl }
                         .Where(l => !string.IsNullOrEmpty(l))
                         .Select(l => l!.Replace("https://", "").Replace("http://", "").TrimEnd('/'))
-                        .ToList()
+                        .ToList(),
+                    Personal = PersonalLines(target, profile)
                 },
                 SectionOrder = SectionOrder(target, profile)
             };
