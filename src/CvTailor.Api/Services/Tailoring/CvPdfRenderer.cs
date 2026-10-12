@@ -14,7 +14,8 @@ namespace CvTailor.Api.Services.Tailoring
         private const string Muted = "#5b5b66";
         private const string Rule = "#d4d4d8";
 
-        private static readonly Dictionary<string, string> SectionTitles = new()
+        // Word çıktısı ve ATS testi de aynı başlıkları kullanıyor.
+        public static readonly IReadOnlyDictionary<string, string> SectionTitles = new Dictionary<string, string>
         {
             ["experience"] = "DENEYİM",
             ["projects"] = "PROJELER",

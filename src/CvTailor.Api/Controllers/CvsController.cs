@@ -62,6 +62,15 @@ namespace CvTailor.Api.Controllers
             return File(CvDocxRenderer.Render(cv), "application/vnd.openxmlformats-officedocument.wordprocessingml.document", FileName(cv, "docx"));
         }
 
+        // İndirilecek dosyaların ikisini de üretip CV okuyucumuzla geri okuyor; prova ekranındaki "ATS testi".
+        [HttpGet("{id:guid}/ats")]
+        public async Task<ActionResult<AtsReport>> Ats(Guid id, CancellationToken cancellationToken)
+        {
+            var cv = await _tailoring.GetAsync(User.GetUserId(), id, cancellationToken);
+            if (cv == null) return NotFound(MessageResponse.Fail("CV bulunamadı."));
+            return Ok(AtsRoundTrip.Check(cv));
+        }
+
         private static string FileName(TailoredCvDto cv, string extension)
         {
             var name = string.Join("-", new[] { cv.Document.Header.FullName, cv.TargetTitle, "CV" }.Where(s => !string.IsNullOrWhiteSpace(s)));

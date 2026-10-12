@@ -11,6 +11,8 @@
 
   const DROP_KIND = { bullet: "Madde", experience: "Deneyim", project: "Proje" };
   let cv = null;
+  let ats = null;
+  let atsRequest = 0;
 
   const currentText = c => c.editedText ?? c.after;
   const isUnchanged = c => c.before === c.after && !c.editedText;
@@ -75,6 +77,35 @@
       </div>`;
   }
 
+  // ATS testi: indirilecek PDF ve Word dosyası sunucuda üretilip CV okuyucumuzla geri okunuyor.
+  function renderAts(open = root.querySelector(".ct-ats")?.open) {
+    if (!ats) return `<p class="ct-hint">ATS testi yapılıyor...</p>`;
+    const failed = ats.formats.flatMap(f => f.checks.filter(c => !c.ok).map(c => `${f.format}: ${c.label}`));
+    return `
+      <details class="ct-ats ${ats.passed ? "is-ok" : "is-fail"}" ${open ? "open" : ""}>
+        <summary>
+          <strong>${ats.passed ? "✓ ATS testi geçti" : "✗ ATS testinde sorun var"}</strong>
+          <span>${ats.passed ? "PDF ve Word dosyasını bir işe alım sistemi gibi okuduk; her şey metin olarak çıkıyor." : esc(failed.join(" · "))}</span>
+        </summary>
+        <div class="ct-ats-formats">
+          ${ats.formats.map(f => `
+            <div>
+              <h3>${esc(f.format)}</h3>
+              <ul>${f.checks.map(c => `<li class="${c.ok ? "is-ok" : "is-fail"}"><b>${c.ok ? "✓" : "✗"}</b> ${esc(c.label)}${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</li>`).join("")}</ul>
+            </div>`).join("")}
+        </div>
+      </details>`;
+  }
+
+  async function loadAts() {
+    const request = ++atsRequest;
+    const { ok, data } = await session.api.get(`/api/cvs/${cv.id}/ats`);
+    if (!ok || request !== atsRequest) return;
+    ats = data;
+    const box = root.querySelector("#ct-ats");
+    if (box) box.innerHTML = renderAts();
+  }
+
   function render() {
     const byId = Object.fromEntries(cv.changes.map(c => [c.id, c]));
     const doc = cv.document;
@@ -98,6 +129,7 @@
       ${notes.length ? `<div class="ct-review"><ul>${notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>` : ""}
       <p class="ct-summary-line">${rewritten} madde yeniden yazıldı${pending ? ` · <strong>${pending} madde onay bekliyor</strong>` : ""} · ${doc.dropped.length} öğe CV'ye girmedi</p>
       <p class="ct-hint">PDF ve Word dosyası her maddenin son hâliyle hazırlanır: kabul ettiklerin yeni hâliyle, diğerleri orijinaliyle.</p>
+      <div id="ct-ats">${renderAts()}</div>
 
       ${doc.summaryChangeId && byId[doc.summaryChangeId] ? `<section class="ct-card"><h2>Özet</h2>${renderChange(byId[doc.summaryChangeId])}</section>` : ""}
       ${doc.experiences.length ? `<section class="ct-card"><h2>Deneyim</h2>${doc.experiences.map(e => renderEntry(e, byId)).join("")}</section>` : ""}
@@ -115,7 +147,9 @@
     const { ok, data } = await session.api.get(`/api/cvs/${id}`);
     if (!ok) { root.innerHTML = `<p class="ct-muted">${esc(data?.message || "CV bulunamadı.")}</p>`; return; }
     cv = data;
+    ats = null;
     render();
+    loadAts();
   }
 
   async function update(changeId, body) {
@@ -123,6 +157,8 @@
     if (!ok) { ui.toast(data?.message || "Kaydedilemedi.", "error"); return; }
     cv = data;
     render();
+    // Basılan metin değişti; test yeniden. Eski sonuç yenisi gelene kadar ekranda kalıyor.
+    loadAts();
     const changed = cv.changes.find(c => c.id === changeId);
     if (changed?.guard.status === "flagged" && body.text) ui.toast("Kaydedildi, ama yazdığın metinde kasada olmayan bilgi var.", "error");
   }

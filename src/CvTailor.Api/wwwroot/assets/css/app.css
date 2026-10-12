@@ -292,6 +292,23 @@ select.ct-input { padding: 0 8px; }
 .ct-change-reason { font-size: 13px; color: var(--text-2); }
 .ct-guard { display: grid; gap: 4px; padding: 10px 12px; border-radius: 8px; background: var(--danger-soft); color: var(--text-2); font-size: 13px; }
 .ct-guard strong { color: var(--danger); }
+
+/* ATS testi */
+.ct-ats { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-size: 13px; }
+.ct-ats summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 10px 14px; cursor: pointer; list-style: none; }
+.ct-ats summary::-webkit-details-marker { display: none; }
+.ct-ats summary span { color: var(--muted); }
+.ct-ats.is-ok summary strong { color: var(--success); }
+.ct-ats.is-fail { border-color: var(--danger); }
+.ct-ats.is-fail summary strong { color: var(--danger); }
+.ct-ats-formats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 4px 14px 14px; }
+.ct-ats-formats h3 { margin: 0 0 6px; font-size: 12.5px; color: var(--text-2); }
+.ct-ats-formats ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ct-ats-formats li { display: grid; grid-template-columns: 16px 1fr; column-gap: 4px; }
+.ct-ats-formats li b { grid-row: span 2; }
+.ct-ats-formats li.is-ok b { color: var(--success); }
+.ct-ats-formats li.is-fail b { color: var(--danger); }
+.ct-ats-formats li small { color: var(--muted); overflow-wrap: anywhere; }
 .ct-guard ul { margin: 0; padding-left: 18px; }
 .ct-change-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .ct-change-state { font-size: 12.5px; color: var(--muted); }
@@ -313,6 +330,7 @@ select.ct-input { padding: 0 8px; }
   .ct-savebar { flex-direction: column; align-items: stretch; }
   .ct-req-columns { grid-template-columns: 1fr; }
   .ct-change-cols { grid-template-columns: 1fr; }
+  .ct-ats-formats { grid-template-columns: 1fr; }
   .ct-target-row { flex-direction: column; align-items: flex-start; }
   .ct-target-row-side { text-align: left; }
   .ct-shell { grid-template-columns: 1fr; }

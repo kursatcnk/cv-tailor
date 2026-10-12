@@ -15,15 +15,6 @@ namespace CvTailor.Api.Services.Tailoring
         private const int RightTab = 11906 - 2 * Margin;
         private const string Muted = "5B5B66";
 
-        private static readonly Dictionary<string, string> SectionTitles = new()
-        {
-            ["experience"] = "DENEYİM",
-            ["projects"] = "PROJELER",
-            ["education"] = "EĞİTİM",
-            ["skills"] = "BECERİLER",
-            ["certificates"] = "SERTİFİKALAR"
-        };
-
         public static byte[] Render(TailoredCvDto cv)
         {
             var doc = cv.Document;
@@ -96,7 +87,7 @@ namespace CvTailor.Api.Services.Tailoring
 
         private static Paragraph Heading(string section)
         {
-            var p = Paragraph(new[] { Run(SectionTitles[section], bold: true, size: 21) }, before: 200, after: 80);
+            var p = Paragraph(new[] { Run(CvPdfRenderer.SectionTitles[section], bold: true, size: 21) }, before: 200, after: 80);
             // OOXML eleman sırası katı: kenarlık, sekme ve liste tanımı satır aralığından önce gelmeli.
             p.ParagraphProperties!.InsertAt(new ParagraphBorders(new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "D4D4D8", Space = 1 }), 0);
             return p;
