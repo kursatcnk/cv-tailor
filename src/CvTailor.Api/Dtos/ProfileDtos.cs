@@ -98,5 +98,7 @@ namespace CvTailor.Api.Dtos
         public string? Notice { get; set; }
         // Kontrol ekranında "okuyabildiğim metin" olarak yan yana gösteriliyor.
         public string ExtractedText { get; set; } = string.Empty;
+        // Dosya yüklendiyse ATS röntgeni; yapıştırılan metinde dosya olmadığı için boş.
+        public List<AtsCheck>? Xray { get; set; }
     }
 }

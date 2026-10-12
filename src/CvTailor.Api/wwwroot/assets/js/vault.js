@@ -123,7 +123,23 @@
     const notes = [...(data.warnings || [])];
     if (data.notice) notes.unshift(data.notice);
     $("#ct-review-notes").innerHTML = notes.map(n => `<li>${esc(n)}</li>`).join("");
+    $("#ct-xray").innerHTML = data.xray ? renderXray(data.xray) : "";
     $("#ct-source-text").textContent = data.extractedText || "";
+  }
+
+  // Yüklenen dosyanın ATS röntgeni. Sorun varsa açık geliyor; kasaya kaydetmeyi engellemiyor, dosyanın kendisiyle ilgili.
+  function renderXray(checks) {
+    const failed = checks.filter(c => !c.ok).length;
+    return `
+      <details class="ct-ats ${failed ? "is-fail" : "is-ok"}" ${failed ? "open" : ""}>
+        <summary>
+          <strong>${failed ? `✗ ATS röntgeni: ${failed} sorun` : "✓ ATS röntgeni temiz"}</strong>
+          <span>Bu dosyayı bir işe alım sistemine olduğu gibi yüklesen ne olurdu?</span>
+        </summary>
+        <div class="ct-ats-formats is-single">
+          <ul>${checks.map(c => `<li class="${c.ok ? "is-ok" : "is-fail"}"><b>${c.ok ? "✓" : "✗"}</b> ${esc(c.label)}<small>${esc(c.detail)}</small></li>`).join("")}</ul>
+        </div>
+      </details>`;
   }
 
   // ---- Yükleme ----

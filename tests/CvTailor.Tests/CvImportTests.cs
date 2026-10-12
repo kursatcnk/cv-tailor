@@ -16,7 +16,7 @@ namespace CvTailor.Tests
 
         // Canva/Word şablonlarına benzer iki sütunlu CV: solda iletişim ve beceriler, sağda deneyim.
         // Bitişik harfler açık; gerçek hayattaki PDF'lerin çoğu böyle geliyor.
-        private static byte[] TwoColumnPdf() => QuestPDF.Fluent.Document.Create(c => c.Page(p =>
+        internal static byte[] TwoColumnPdf() => QuestPDF.Fluent.Document.Create(c => c.Page(p =>
         {
             p.Size(PageSizes.A4);
             p.Margin(30);

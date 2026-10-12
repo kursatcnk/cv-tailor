@@ -99,6 +99,4 @@ namespace CvTailor.Api.Services.Tailoring
         public List<AtsCheck> Checks { get; set; } = new();
         public bool Passed => Checks.All(c => c.Ok);
     }
-
-    public record AtsCheck(string Label, bool Ok, string? Detail);
 }

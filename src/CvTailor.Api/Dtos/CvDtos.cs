@@ -124,4 +124,7 @@ namespace CvTailor.Api.Dtos
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
+
+    // ATS testinin tek satırı: üretilen CV için de yüklenen dosya için de aynı biçim.
+    public record AtsCheck(string Label, bool Ok, string? Detail);
 }

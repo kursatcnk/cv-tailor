@@ -19,15 +19,16 @@ namespace CvTailor.Api.Services.Cv
         public CvTextResult Extract(Stream stream, string fileName)
         {
             var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            var layout = new List<string>();
             var text = extension switch
             {
-                ".pdf" => ReadPdf(stream),
-                ".docx" => ReadDocx(stream),
+                ".pdf" => ReadPdf(stream, layout),
+                ".docx" => ReadDocx(stream, layout),
                 ".txt" or ".md" => new StreamReader(stream, Encoding.UTF8).ReadToEnd(),
                 ".doc" => throw new CvImportException("Eski .doc biçimi okunamıyor. Word'de \"Farklı kaydet → .docx\" ile kaydedip tekrar yükle."),
                 _ => throw new CvImportException("Sadece PDF, DOCX ya da TXT dosyası yüklenebilir.")
             };
-            return FromText(text, fromFile: true);
+            return FromText(text, fromFile: true) with { Layout = layout };
         }
 
         public CvTextResult FromText(string text, bool fromFile = false)
@@ -40,6 +41,22 @@ namespace CvTailor.Api.Services.Cv
             if (cleaned.Length > MaxTextLength)
                 throw new CvImportException("Metin bir CV için fazla uzun. Sadece CV'ni yükle.");
             return new CvTextResult(cleaned, cleaned.Contains(Unreadable));
+        }
+
+        // Dosyanın düzeniyle ilgili bulgular; ATS röntgeni bunları kullanıcıya açıklıyor.
+        public const string LayoutColumns = "columns";
+        public const string LayoutTextBox = "text-box";
+        public const string LayoutTable = "table";
+        public const string LayoutHeader = "header";
+
+        // Yan yana duran ve dikeyde örtüşen iki metin bloğu varsa sayfa sütunlu. Sağa yaslı tarih gibi tek satırlık
+        // bloklar sayılmıyor; tek sütunlu CV'de başlık ve tarihi aynı satırda olan girişler sütun sanılmasın.
+        private static bool HasColumns(IReadOnlyList<UglyToad.PdfPig.DocumentLayoutAnalysis.TextBlock> blocks)
+        {
+            var tall = blocks.Where(b => b.TextLines.Count >= 2).Select(b => b.BoundingBox).ToList();
+            return tall.Any(a => tall.Any(b =>
+                a.Right < b.Left
+                && Math.Min(a.Top, b.Top) - Math.Max(a.Bottom, b.Bottom) > 0.5 * Math.Min(a.Height, b.Height)));
         }
 
         // Okunamayan harflerin yerine konan işaret. AI ayrıştırırken kelimeyi tamamlıyor, kullanıcıya da uyarı çıkıyor.
@@ -55,7 +72,7 @@ namespace CvTailor.Api.Services.Cv
 
         // PdfPig'in düz GetText'i iki sütunlu CV'lerde iki sütunu satır satır birbirine karıştırıyor.
         // Önce kelimeleri bloklara ayırıp (Docstrum) okuma sırasına diziyorum; sol sütun bitmeden sağa geçmiyor.
-        private static string ReadPdf(Stream stream)
+        private static string ReadPdf(Stream stream, List<string> layout)
         {
             try
             {
@@ -68,6 +85,7 @@ namespace CvTailor.Api.Services.Cv
                 {
                     var words = NearestNeighbourWordExtractor.Instance.GetWords(page.Letters);
                     var blocks = DocstrumBoundingBoxes.Instance.GetBlocks(words);
+                    if (!layout.Contains(LayoutColumns) && HasColumns(blocks)) layout.Add(LayoutColumns);
                     foreach (var block in UnsupervisedReadingOrderDetector.Instance.Get(blocks))
                     {
                         foreach (var line in block.TextLines)
@@ -87,13 +105,22 @@ namespace CvTailor.Api.Services.Cv
 
         // Madde işaretli listeler Word'de ayrı paragraf; her paragrafı ayrı satıra yazınca maddeler korunuyor.
         // Tablolarla yapılmış CV şablonları da paragraf paragraf okunuyor.
-        private static string ReadDocx(Stream stream)
+        private static string ReadDocx(Stream stream, List<string> layout)
         {
             try
             {
                 using var document = WordprocessingDocument.Open(stream, false);
-                var body = document.MainDocumentPart?.Document?.Body;
+                var main = document.MainDocumentPart;
+                var body = main?.Document?.Body;
                 if (body == null) return string.Empty;
+
+                // Şablonların ATS'leri en çok zorlayan alışkanlıkları. Metni yine okuyoruz, ama kullanıcıya söylüyoruz.
+                // Metin kutusu VML ya da DrawingML içinde gelebiliyor; ikisinde de içerik w:txbxContent.
+                if (body.Descendants().Any(e => e.LocalName == "txbxContent" && !string.IsNullOrWhiteSpace(e.InnerText))) layout.Add(LayoutTextBox);
+                if (body.Descendants<W.Table>().Any()) layout.Add(LayoutTable);
+                // Üst/alt bilgiyi hiç okumuyoruz; birçok ATS de okumuyor. İletişim bilgisi oradaysa kayboluyor.
+                var headerText = main!.HeaderParts.Select(p => p.RootElement?.InnerText).Concat(main.FooterParts.Select(p => p.RootElement?.InnerText));
+                if (headerText.Any(t => !string.IsNullOrWhiteSpace(t))) layout.Add(LayoutHeader);
 
                 var sb = new StringBuilder();
                 foreach (var paragraph in body.Descendants<W.Paragraph>())
@@ -129,7 +156,10 @@ namespace CvTailor.Api.Services.Cv
         }
     }
 
-    public record CvTextResult(string Text, bool HasUnreadableLetters);
+    public record CvTextResult(string Text, bool HasUnreadableLetters)
+    {
+        public IReadOnlyList<string> Layout { get; init; } = Array.Empty<string>();
+    }
 
     // Mesajı doğrudan kullanıcıya gösteriliyor.
     public class CvImportException : Exception

@@ -33,18 +33,18 @@ namespace CvTailor.Api.Services.Cv
         }
 
         public Task<CvImportOutcome> ImportFileAsync(Guid userId, Stream stream, string fileName, CancellationToken ct) =>
-            ImportAsync(userId, fileName, () => _extractor.Extract(stream, fileName), ct);
+            ImportAsync(userId, fileName, () => _extractor.Extract(stream, fileName), fromFile: true, ct);
 
         public Task<CvImportOutcome> ImportTextAsync(Guid userId, string text, CancellationToken ct) =>
-            ImportAsync(userId, "yapıştırılan metin", () => _extractor.FromText(text), ct);
+            ImportAsync(userId, "yapıştırılan metin", () => _extractor.FromText(text), fromFile: false, ct);
 
-        private async Task<CvImportOutcome> ImportAsync(Guid userId, string fileName, Func<CvTextResult> extract, CancellationToken ct)
+        private async Task<CvImportOutcome> ImportAsync(Guid userId, string fileName, Func<CvTextResult> extract, bool fromFile, CancellationToken ct)
         {
             CvTextResult extracted;
             try { extracted = extract(); }
             catch (CvImportException ex) { return CvImportOutcome.Fail(ex.Message); }
 
-            var response = new CvImportResponse { ExtractedText = extracted.Text };
+            var response = new CvImportResponse { ExtractedText = extracted.Text, Xray = fromFile ? AtsXray.ForImport(extracted) : null };
             if (extracted.HasUnreadableLetters)
                 response.Warnings.Add("PDF'teki bazı harf birleşimleri (ör. \"ti\", \"fi\") okunamadı. Bunlar tamamlanmaya çalışıldı; kelimeleri kontrol et.");
             response.Warnings.AddRange(PiiScanner.Warnings(extracted.Text));
