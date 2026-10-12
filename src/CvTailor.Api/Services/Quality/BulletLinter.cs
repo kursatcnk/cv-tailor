@@ -39,6 +39,8 @@ namespace CvTailor.Api.Services.Quality
             var issues = new List<LintIssue>();
             var t = text?.Trim() ?? "";
             if (t.Length == 0) return issues;
+            // Kasada özet 2000, madde 1000 karakterde kesiliyor; kaydedilmemiş formdan gelen metin için de sınır koy.
+            if (t.Length > 2000) t = t[..2000];
             var lower = t.ToLower(Tr);
 
             foreach (var cliche in Cliches.Where(c => lower.Contains(c)))
@@ -51,13 +53,25 @@ namespace CvTailor.Api.Services.Quality
                 issues.Add(new LintIssue("length", "info", "İki satırı geçiyor", "Bir madde bir iki satır olmalı. En önemli sonucu bırak, gerisini kısalt."));
             if (!Number.IsMatch(t))
                 issues.Add(new LintIssue("no-number", "info", "Rakam yok", "Kaç kişi, ne kadar süre, yüzde kaç? Bir rakam maddeyi iki kat inandırıcı yapar."));
+            switch (Mood(t))
+            {
+                case "edilgen":
+                    issues.Add(new LintIssue("passive", "info", "Edilgen cümle", "\"Geliştirildi\" işi kimin yaptığını saklıyor. Senin işinse \"geliştirdim\" yaz."));
+                    break;
+                case "isim":
+                    issues.Add(new LintIssue("noun-ending", "info", "Fiille bitmiyor", "\"API geliştirme\" bir görev başlığı gibi duruyor. \"API'yi geliştirdim\" dersen ne yaptığın netleşir."));
+                    break;
+            }
             return issues;
         }
 
         // Madde hangi kiple bitiyor? Aynı iş altında karışık kip ("geliştirdim" / "geliştirildi" / "geliştirme") dağınık görünüyor.
         public static string? Mood(string? text)
         {
-            var word = Regex.Match(text?.Trim().TrimEnd('.', ';', '!') ?? "", @"(\p{L}+)$").Value.ToLower(Tr);
+            // Sadece son kelime lazım; uzun metinde regex'i baştan çalıştırmamak için sondan kısa bir parça yeter.
+            var tail = text?.Trim().TrimEnd('.', ';', '!') ?? "";
+            tail = tail[^Math.Min(60, tail.Length)..];
+            var word = Regex.Match(tail, @"(\p{L}+)$").Value.ToLower(Tr);
             if (word.Length < 4) return null;
             if (Regex.IsMatch(word, "(ıldı|ildi|uldu|üldü|ndı|ndi|ndu|ndü)$")) return "edilgen";
             if (Regex.IsMatch(word, "(dım|dim|dum|düm|tım|tim|tum|tüm)$")) return "birinci";

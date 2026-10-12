@@ -167,6 +167,32 @@ namespace CvTailor.Tests
         public void Mood_reads_the_last_word(string text, string mood) =>
             Assert.Equal(mood, BulletLinter.Mood(text));
 
+        [Theory]
+        [InlineData("Ödeme API'si 2 haftada geliştirildi.", "passive")]
+        [InlineData("3 mikroservisin bakımı ve geliştirme", "noun-ending")]
+        public void Coach_points_out_weak_endings(string text, string code) =>
+            Assert.Contains(BulletLinter.Lint(text), i => i.Code == code);
+
+        [Fact]
+        public void Strong_bullet_gets_no_coaching()
+        {
+            Assert.Empty(BulletLinter.Lint("Sipariş servisini 3 ayda .NET 8'e taşıdım; yanıt süresi %35 kısaldı."));
+        }
+
+        [Fact]
+        public void Health_report_leaves_per_bullet_mood_to_the_coach()
+        {
+            var profile = new ProfileDto
+            {
+                Email = "a@example.com",
+                Experiences = { Job("A", "2022-01", null, current: true, bullets: new[] { "3 servis geliştirildi.", "2 rapor ekranı hazırlandı." }) }
+            };
+
+            var codes = Codes(profile);
+            Assert.DoesNotContain("passive", codes);
+            Assert.DoesNotContain("mood", codes);
+        }
+
         [Fact]
         public void Linter_explains_each_issue()
         {

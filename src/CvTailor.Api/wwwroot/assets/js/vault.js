@@ -254,7 +254,8 @@
           <div class="ct-bullet">
             <textarea class="ct-textarea" data-bind="${path}.${i}.text" rows="2">${esc(a.text)}</textarea>
             <button class="ct-icon-button" type="button" data-action="remove" data-path="${path}" data-index="${i}" aria-label="Maddeyi sil">×</button>
-          </div>`).join("")}
+          </div>
+          <div class="ct-coach" data-coach="${path}.${i}.text" aria-live="polite" hidden></div>`).join("")}
         <button class="ct-link-button" type="button" data-action="add-bullet" data-path="${path}">+ Madde ekle</button>
       </div>`;
   }
@@ -400,6 +401,42 @@
       end.disabled = value;
       if (value) { end.value = ""; setPath(path.replace(".isCurrent", ".endDate"), null); }
     }
+  });
+
+  // ---- Koç ----
+  // Madde yazılırken altında o maddeye özel geri bildirim. Sadece odaktaki madde; bütün liste sağlık panelinde.
+
+  const isBullet = el => /\.achievements\.\d+\.text$/.test(el?.dataset?.bind || "");
+  let coachTimer = 0;
+  let coachRequest = 0;
+
+  async function coach(textarea) {
+    const box = editor.querySelector(`[data-coach="${textarea.dataset.bind}"]`);
+    if (!box) return;
+    const text = textarea.value.trim();
+    if (!text) { box.hidden = true; return; }
+    const request = ++coachRequest;
+    const { ok, data } = await session.api.post("/api/vault/lint", { text });
+    if (!ok || request !== coachRequest || document.activeElement !== textarea) return;
+    box.hidden = false;
+    box.className = `ct-coach${data.length ? "" : " is-good"}`;
+    box.innerHTML = data.length
+      ? data.map(i => `<p class="is-${i.level}"><strong>${esc(i.message)}.</strong> ${esc(i.hint)}</p>`).join("")
+      : `<p>Güçlü görünüyor: rakam var, zayıf ifade ve klişe yok.</p>`;
+  }
+
+  editor.addEventListener("focusin", event => { if (isBullet(event.target)) coach(event.target); });
+  editor.addEventListener("input", event => {
+    if (!isBullet(event.target)) return;
+    clearTimeout(coachTimer);
+    coachTimer = setTimeout(() => coach(event.target), 400);
+  });
+  editor.addEventListener("focusout", event => {
+    if (!isBullet(event.target)) return;
+    clearTimeout(coachTimer);
+    coachRequest++;
+    const box = editor.querySelector(`[data-coach="${event.target.dataset.bind}"]`);
+    if (box) box.hidden = true;
   });
 
   editor.addEventListener("keydown", event => {

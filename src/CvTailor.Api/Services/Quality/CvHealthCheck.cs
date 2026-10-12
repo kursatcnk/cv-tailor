@@ -51,8 +51,9 @@ namespace CvTailor.Api.Services.Quality
                     bullets++;
                     var lint = BulletLinter.Lint(text);
                     if (lint.All(x => x.Code != "no-number")) withNumbers++;
-                    // Rakamsızlığı madde madde değil toplu söylüyoruz; her maddenin altında aynı uyarı gürültü oluyor.
-                    foreach (var issue in lint.Where(x => x.Code != "no-number"))
+                    // Rakamsızlığı ve kipi madde madde değil toplu söylüyoruz; her maddenin altında aynı uyarı gürültü oluyor.
+                    // Madde madde hâli, yazarken koçta görünüyor.
+                    foreach (var issue in lint.Where(x => x.Code is not ("no-number" or "passive" or "noun-ending")))
                         issues.Add(new HealthIssue(issue, where, $"{path}.achievements.{i}"));
 
                     var key = text.ToLower(Tr);

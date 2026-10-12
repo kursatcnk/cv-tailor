@@ -131,7 +131,7 @@ select.ct-input { padding: 0 8px; }
 .ct-editor-col { display: grid; gap: 16px; min-width: 0; }
 
 /* Sağlık kontrolü */
-.ct-health { padding: 0; }
+.ct-health { gap: 0; padding: 0; }
 .ct-health summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 18px; cursor: pointer; list-style: none; }
 .ct-health summary::-webkit-details-marker { display: none; }
 .ct-health summary span { font-size: 12.5px; color: var(--muted); }
@@ -145,6 +145,13 @@ select.ct-input { padding: 0 8px; }
 .ct-health-list li p { margin: 0; color: var(--text-2); }
 .ct-health-list button { justify-self: start; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12.5px; cursor: pointer; }
 .ct-health-ok { color: var(--success); }
+
+/* Koç: odaktaki maddenin altında */
+.ct-coach { display: grid; gap: 4px; margin: -2px 34px 4px 0; padding: 8px 10px; border-radius: 8px; background: var(--warning-soft); font-size: 12.5px; color: var(--text-2); }
+.ct-coach p { margin: 0; }
+.ct-coach p.is-info strong { color: var(--text); }
+.ct-coach p.is-warn strong { color: var(--warning); }
+.ct-coach.is-good { background: var(--success-soft); color: var(--success); }
 .ct-flash { animation: ct-flash 1.2s ease-out; }
 @keyframes ct-flash { from { box-shadow: 0 0 0 3px var(--accent); } to { box-shadow: 0 0 0 3px transparent; } }
 .ct-summary-line { font-size: 13px; color: var(--muted); }

@@ -28,5 +28,15 @@ namespace CvTailor.Api.Controllers
         [HttpPost("health")]
         public ActionResult<HealthReport> Health([FromBody] ProfileDto profile) =>
             Ok(CvHealthCheck.Check(profile, DateTime.Today));
+
+        // Koç: yazılmakta olan tek madde.
+        [HttpPost("lint")]
+        public ActionResult<List<LintIssue>> Lint([FromBody] LintRequest request) =>
+            Ok(BulletLinter.Lint(request.Text));
+    }
+
+    public class LintRequest
+    {
+        public string? Text { get; set; }
     }
 }
