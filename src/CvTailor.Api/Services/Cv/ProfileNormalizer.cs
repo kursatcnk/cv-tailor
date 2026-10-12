@@ -12,6 +12,7 @@ namespace CvTailor.Api.Services.Cv
         public static readonly string[] EmploymentTypes = { "full-time", "part-time", "internship", "freelance" };
         public static readonly string[] SkillCategories = { "technical", "tool", "language", "soft" };
         public static readonly string[] Sources = { "cv", "interview", "manual" };
+        public static readonly string[] MilitaryStatuses = { "done", "exempt", "deferred" };
 
         private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
 
@@ -36,6 +37,12 @@ namespace CvTailor.Api.Services.Cv
             profile.GitHubUrl = Url(profile.GitHubUrl);
             profile.WebsiteUrl = Url(profile.WebsiteUrl);
             profile.Summary = Clip(profile.Summary, 2000);
+            profile.MilitaryStatus = MilitaryStatuses.Contains(profile.MilitaryStatus) ? profile.MilitaryStatus : null;
+            // Tecil yılı sadece tecilliyse anlamlı; saçma yılları da at.
+            profile.MilitaryDeferredUntil = profile.MilitaryStatus == "deferred" && profile.MilitaryDeferredUntil is >= 2000 and <= 2100
+                ? profile.MilitaryDeferredUntil : null;
+            // "B sınıfı", "b" → "B"; sınıf adları büyük harf ve virgülle.
+            profile.DriverLicense = Clip(profile.DriverLicense?.Replace("sınıfı", "", StringComparison.OrdinalIgnoreCase).ToUpper(Tr), 20);
 
             profile.Experiences = (profile.Experiences ?? new())
                 .Where(e => e != null)

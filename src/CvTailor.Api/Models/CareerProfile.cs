@@ -19,6 +19,16 @@ namespace CvTailor.Api.Models
         public string? WebsiteUrl { get; set; }
         public string? Summary { get; set; }
 
+        // Türkiye'deki ilanların sık sorduğu kişisel bilgiler. Medeni hâl, doğum tarihi gibi ayrımcılığa açık
+        // bilgiler bilerek yok.
+        // done | exempt | deferred
+        public string? MilitaryStatus { get; set; }
+        // Tecilliyse hangi yıla kadar
+        public int? MilitaryDeferredUntil { get; set; }
+        // "B", "B, A2"
+        public string? DriverLicense { get; set; }
+        public bool? CanTravel { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

@@ -14,6 +14,12 @@ namespace CvTailor.Api.Dtos
         public string? WebsiteUrl { get; set; }
         public string? Summary { get; set; }
 
+        // done | exempt | deferred
+        public string? MilitaryStatus { get; set; }
+        public int? MilitaryDeferredUntil { get; set; }
+        public string? DriverLicense { get; set; }
+        public bool? CanTravel { get; set; }
+
         public List<ExperienceDto> Experiences { get; set; } = new();
         public List<EducationDto> Educations { get; set; } = new();
         public List<ProjectDto> Projects { get; set; } = new();

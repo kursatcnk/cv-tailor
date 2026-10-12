@@ -11,7 +11,7 @@
   const CATEGORY = { technical: "Teknik", tool: "Araç", experience: "Deneyim", education: "Eğitim", language: "Dil", certification: "Sertifika", soft: "Yetkinlik", other: "Diğer" };
   const SENIORITY = { junior: "Junior", mid: "Mid-level", senior: "Senior" };
   const STRENGTH = { strong: "Güçlü", weak: "Zayıf", missing: "Yok", unknown: "Ölçülemez" };
-  const EVIDENCE = { achievement: "İş maddesi", projectAchievement: "Proje maddesi", project: "Proje", experience: "Deneyim", education: "Eğitim", skill: "Beceri", certificate: "Sertifika", summary: "Özet", duration: "Süre" };
+  const EVIDENCE = { achievement: "İş maddesi", projectAchievement: "Proje maddesi", project: "Proje", experience: "Deneyim", education: "Eğitim", skill: "Beceri", certificate: "Sertifika", summary: "Özet", duration: "Süre", personal: "Kişisel bilgi" };
   const dateFormat = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 
   // ---- Hedef detayı ----

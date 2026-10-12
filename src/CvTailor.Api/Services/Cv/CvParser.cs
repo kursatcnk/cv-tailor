@@ -76,6 +76,7 @@ namespace CvTailor.Api.Services.Cv
             - headline: the job title line under the name, if there is one. summary: the profile/about paragraph, copied exactly, if there is one.
             - Projects are things the person built outside a job (personal, school, open source). Put a project's bullets in its achievements.
             - Personal data is replaced by placeholders: [EPOSTA_n] email, [TELEFON_n] phone, [LINKEDIN_n] LinkedIn, [GITHUB_n] GitHub (profile or a project repository), [LINK_n] other links. Copy a placeholder exactly as written into the matching field (email, phone, linkedInUrl, gitHubUrl, websiteUrl, project url).
+            - Personal details, only if the CV states them: militaryStatus "done" ("Askerlik: Yapıldı/Tamamlandı"), "exempt" ("Muaf"), "deferred" ("Tecilli", put the year in militaryDeferredUntil if given); driverLicense: the classes only, e.g. "B" or "B, A2"; canTravel: true if it says "Seyahat engeli yok" or similar. Ignore marital status, birth date and similar.
             - Leave a field null when the CV does not contain it. Never guess emails, phone numbers, links or dates.
             - Set every "id" to null and every achievement "source" to "cv".
 
@@ -83,6 +84,7 @@ namespace CvTailor.Api.Services.Cv
             {
               "fullName": "", "headline": "", "email": "", "phone": "", "location": "",
               "linkedInUrl": "", "gitHubUrl": "", "websiteUrl": "", "summary": "",
+              "militaryStatus": null, "militaryDeferredUntil": null, "driverLicense": null, "canTravel": null,
               "experiences": [ { "id": null, "company": "", "title": "", "location": "", "employmentType": null, "startDate": "", "endDate": "", "isCurrent": false,
                                  "achievements": [ { "id": null, "text": "", "source": "cv" } ] } ],
               "educations": [ { "id": null, "school": "", "degree": "", "field": "", "startDate": "", "endDate": "", "gpa": "" } ],

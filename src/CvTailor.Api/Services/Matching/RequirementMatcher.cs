@@ -44,6 +44,16 @@ namespace CvTailor.Api.Services.Matching
                 Importance = requirement.Importance ?? "must",
                 Category = requirement.Category ?? "other"
             };
+
+            // Askerlik, ehliyet, seyahat: kanıt bir iş maddesi değil, kişisel bilgiler.
+            if (item.Category == "other" && PersonalRequirements.KindOf(item.Text) is { } personal)
+            {
+                (item.Strength, item.Note) = PersonalRequirements.Match(personal, item.Text, profile);
+                if (PersonalRequirements.Label(profile, personal) is { } label)
+                    item.Evidence.Add(new MatchEvidence { Kind = "personal", Text = label, Where = "Kişisel bilgiler", Strength = item.Strength == "strong" ? "strong" : "weak" });
+                return item;
+            }
+
             var strict = StrictCategories.Contains(item.Category);
             var sources = Sources(profile, item.Category).ToList();
             var years = Years.Match(item.Text) is { Success: true } y ? int.Parse(y.Groups["n"].Value) : (int?)null;

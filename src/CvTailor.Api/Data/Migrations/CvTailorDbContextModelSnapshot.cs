@@ -71,8 +71,15 @@ namespace CvTailor.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool?>("CanTravel")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("DriverLicense")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(255)
@@ -97,6 +104,13 @@ namespace CvTailor.Api.Data.Migrations
                     b.Property<string>("Location")
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("MilitaryDeferredUntil")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MilitaryStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(40)

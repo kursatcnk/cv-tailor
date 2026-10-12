@@ -84,6 +84,8 @@ namespace CvTailor.Api.Data
                 entity.Property(p => p.GitHubUrl).HasMaxLength(500);
                 entity.Property(p => p.WebsiteUrl).HasMaxLength(500);
                 entity.Property(p => p.Summary).HasMaxLength(2000);
+                entity.Property(p => p.MilitaryStatus).HasMaxLength(20);
+                entity.Property(p => p.DriverLicense).HasMaxLength(20);
                 entity.HasOne(p => p.User)
                     .WithOne()
                     .HasForeignKey<CareerProfile>(p => p.UserId)

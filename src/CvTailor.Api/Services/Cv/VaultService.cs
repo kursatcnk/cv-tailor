@@ -43,6 +43,10 @@ namespace CvTailor.Api.Services.Cv
             profile.GitHubUrl = dto.GitHubUrl;
             profile.WebsiteUrl = dto.WebsiteUrl;
             profile.Summary = dto.Summary;
+            profile.MilitaryStatus = dto.MilitaryStatus;
+            profile.MilitaryDeferredUntil = dto.MilitaryDeferredUntil;
+            profile.DriverLicense = dto.DriverLicense;
+            profile.CanTravel = dto.CanTravel;
             profile.UpdatedAt = DateTime.UtcNow;
 
             Sync(profile.Experiences, dto.Experiences, d => d.Id, () => new Experience { ProfileId = profile.Id }, (e, d, i) =>
@@ -171,6 +175,10 @@ namespace CvTailor.Api.Services.Cv
             GitHubUrl = p.GitHubUrl,
             WebsiteUrl = p.WebsiteUrl,
             Summary = p.Summary,
+            MilitaryStatus = p.MilitaryStatus,
+            MilitaryDeferredUntil = p.MilitaryDeferredUntil,
+            DriverLicense = p.DriverLicense,
+            CanTravel = p.CanTravel,
             Experiences = p.Experiences.OrderBy(e => e.SortOrder).Select(e => new ExperienceDto
             {
                 Id = e.Id, Company = e.Company, Title = e.Title, Location = e.Location, EmploymentType = e.EmploymentType,

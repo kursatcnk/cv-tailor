@@ -34,7 +34,7 @@ namespace CvTailor.Api.Dtos
 
     public class MatchEvidence
     {
-        // achievement (iş maddesi) | projectAchievement (proje maddesi) | project | experience | education | skill | certificate | summary | duration
+        // achievement (iş maddesi) | projectAchievement (proje maddesi) | project | experience | education | skill | certificate | summary | duration | personal
         public string Kind { get; set; } = string.Empty;
         // Kasa kaydının Id'si; yeniden yazımda bu madde kaynak olarak kullanılacak.
         public Guid? SourceId { get; set; }

@@ -8,6 +8,8 @@
   const ui = window.CvTailorUi;
   const $ = selector => document.querySelector(selector);
 
+  const MILITARY = [["", "Belirtilmemiş"], ["done", "Tamamlandı"], ["exempt", "Muaf"], ["deferred", "Tecilli"]];
+  const TRAVEL = [["", "Belirtilmemiş"], ["true", "Seyahat engelim yok"], ["false", "Seyahat edemem"]];
   const EMPLOYMENT = [["", "Belirtilmemiş"], ["full-time", "Tam zamanlı"], ["part-time", "Yarı zamanlı"], ["internship", "Staj"], ["freelance", "Serbest"]];
   const SKILL_GROUPS = [
     ["technical", "Teknik", "C#, React, SQL..."],
@@ -251,6 +253,15 @@
     return `<label class="ct-field${wide ? " is-wide" : ""}"><span>${label}</span>${input}</label>`;
   }
 
+  function select(label, path, options, type = "") {
+    const current = getPath(path);
+    const value = current === null || current === undefined ? "" : String(current);
+    return `<label class="ct-field"><span>${label}</span>
+      <select class="ct-input" data-bind="${path}" ${type ? `data-type="${type}"` : ""}>
+        ${options.map(([v, text]) => `<option value="${v}" ${v === value ? "selected" : ""}>${text}</option>`).join("")}
+      </select></label>`;
+  }
+
   function dates(path, withCurrent) {
     const item = getPath(path);
     return `
@@ -393,6 +404,13 @@
           ${field("GitHub", "gitHubUrl", { placeholder: "github.com/..." })}
           ${field("Web sitesi", "websiteUrl")}
           ${field("Özet", "summary", { wide: true, rows: 3, placeholder: "CV'nin başındaki kısa tanıtım paragrafı" })}
+        </div>
+        <p class="ct-hint">Aşağıdakiler sadece ilan isterse CV'ye yazılır. Medeni hâl, doğum tarihi gibi bilgileri bilerek sormuyoruz.</p>
+        <div class="ct-grid">
+          ${select("Askerlik", "militaryStatus", MILITARY)}
+          ${field("Tecil bitiş yılı", "militaryDeferredUntil", { type: "number", placeholder: "Tecilliysen, ör. 2028" })}
+          ${field("Ehliyet", "driverLicense", { placeholder: "B" })}
+          ${select("Seyahat", "canTravel", TRAVEL, "bool")}
         </div>`)}
       ${section("Deneyim", "En yeniden eskiye", renderExperiences(), "add-experience", "+ Deneyim ekle")}
       ${section("Eğitim", "", renderEducations(), "add-education", "+ Eğitim ekle")}
@@ -408,7 +426,10 @@
   editor.addEventListener("input", event => {
     const path = event.target.dataset.bind;
     if (!path) return;
-    const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
+    let value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
+    // Sunucu sayı ve evet/hayır bekliyor; boş seçim null.
+    if (event.target.type === "number") value = value === "" ? null : Number(value);
+    else if (event.target.dataset.type === "bool") value = value === "" ? null : value === "true";
     setPath(path, value);
     setDirty(true);
     // "Hâlâ burada çalışıyorum" seçilince bitiş tarihi anlamını yitiriyor.
