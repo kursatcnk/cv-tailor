@@ -50,9 +50,22 @@ namespace CvTailor.Api.Controllers
         {
             var cv = await _tailoring.GetAsync(User.GetUserId(), id, cancellationToken);
             if (cv == null) return NotFound(MessageResponse.Fail("CV bulunamadı."));
+            return File(CvPdfRenderer.Render(cv), "application/pdf", FileName(cv, "pdf"));
+        }
+
+        // Bazı firmalar ve ilan siteleri Word istiyor; içerik PDF'le aynı.
+        [HttpGet("{id:guid}/docx")]
+        public async Task<IActionResult> Docx(Guid id, CancellationToken cancellationToken)
+        {
+            var cv = await _tailoring.GetAsync(User.GetUserId(), id, cancellationToken);
+            if (cv == null) return NotFound(MessageResponse.Fail("CV bulunamadı."));
+            return File(CvDocxRenderer.Render(cv), "application/vnd.openxmlformats-officedocument.wordprocessingml.document", FileName(cv, "docx"));
+        }
+
+        private static string FileName(TailoredCvDto cv, string extension)
+        {
             var name = string.Join("-", new[] { cv.Document.Header.FullName, cv.TargetTitle, "CV" }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            var fileName = string.Concat(name.Select(ch => char.IsLetterOrDigit(ch) || ch == '-' ? ch : '-')).Trim('-') + ".pdf";
-            return File(CvPdfRenderer.Render(cv), "application/pdf", fileName);
+            return string.Concat(name.Select(ch => char.IsLetterOrDigit(ch) || ch == '-' ? ch : '-')).Trim('-') + "." + extension;
         }
 
         [HttpPost("{id:guid}/approve")]

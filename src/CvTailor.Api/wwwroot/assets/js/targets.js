@@ -182,7 +182,7 @@
           <li><a href="#review:${v.id}">${i === 0 ? "Son sürüm" : `Sürüm ${versions.length - i}`}</a>
             <span class="ct-badge ${v.status === "ready" ? "is-strong" : "is-unknown"}">${v.status === "ready" ? "Onaylandı" : "Taslak"}</span>
             <span class="ct-muted">${dateFormat.format(new Date(v.createdAt))}</span>
-            <a href="/api/cvs/${v.id}/pdf">PDF</a></li>`).join("")}</ul>` : ""}
+            <a href="/api/cvs/${v.id}/pdf">PDF</a> <a href="/api/cvs/${v.id}/docx">Word</a></li>`).join("")}</ul>` : ""}
       </section>`;
   }
 

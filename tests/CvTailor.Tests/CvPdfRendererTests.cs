@@ -9,7 +9,7 @@ namespace CvTailor.Tests
     {
         static CvPdfRendererTests() => QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
-        private static TailoredCvDto Cv()
+        internal static TailoredCvDto Cv()
         {
             var changes = new List<CvChange>
             {
