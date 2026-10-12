@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Services.Ai;
 using CvTailor.Api.Services.Privacy;
@@ -83,7 +84,7 @@ namespace CvTailor.Api.Services.Tailoring
                         Alternatives = (bullet.Alternatives ?? new())
                             .Where(a => !string.IsNullOrWhiteSpace(a) && !VaguePhrases.Any(v => a.Contains(v, StringComparison.OrdinalIgnoreCase)))
                             .Select(a => Clip(a)).Take(2).ToList(),
-                        Reason = bullet.Reason?.Trim() ?? ""
+                        Reason = WithoutIds(bullet.Reason)
                     });
                 }
                 foreach (var fact in entry.Facts.Where(f => !used.Contains(f.Token)))
@@ -96,9 +97,19 @@ namespace CvTailor.Api.Services.Tailoring
                 var allFacts = input.Entries.SelectMany(e => e.Facts.Select(f => f.Token)).Append("s0").Append("y1").ToHashSet();
                 result.Summary.Sources = (result.Summary.Sources ?? new()).Where(allFacts.Contains).Distinct().ToList();
                 result.Summary.Text = string.IsNullOrWhiteSpace(result.Summary.Text) ? null : Clip(result.Summary.Text, 600);
+                result.Summary.Reason = WithoutIds(result.Summary.Reason);
                 if (result.Summary.Text == null || result.Summary.Sources.Count == 0) result.Summary = null;
             }
             return result;
+        }
+
+        // Prompt istemese de AI bazen "f1 ve f2 maddelerini birleştirdim" yazıyor; kullanıcı bu etiketleri görmüyor.
+        private static readonly Regex Ids = new(@"\b[efy]\d+\b(\s*(ve|,)\s*\b[efy]\d+\b)*\s*(maddeler(in)?i|maddesini|maddesi|bilgilerini|bilgisini)?\s*", RegexOptions.Compiled);
+
+        public static string WithoutIds(string? reason)
+        {
+            var text = Ids.Replace(reason?.Trim() ?? "", "").Trim();
+            return text.Length > 0 ? char.ToUpper(text[0], new System.Globalization.CultureInfo("tr-TR")) + text[1..] : text;
         }
 
         private static string Clip(string text) => Clip(text, MaxBulletLength);
@@ -161,7 +172,7 @@ namespace CvTailor.Api.Services.Tailoring
             For each bullet also give:
             - "requirements": keys of the target requirements this bullet proves.
             - "alternatives": two other phrasings that follow exactly the same rules (no new facts, no vague words such as "çeşitli", "görev aldım", "yer aldım", "sorumluydum").
-            - "reason": one Turkish sentence for the candidate explaining what you changed and why, e.g. "İlan ASP.NET Core istiyor; teknolojiyi başa aldım ve 'görev aldım' yerine ne yaptığını yazdım."
+            - "reason": one Turkish sentence for the candidate, addressed to them as "sen", explaining what you changed and why, e.g. "İlan ASP.NET Core istiyor; teknolojiyi başa aldım ve 'görev aldım' yerine ne yaptığını yazdım." Never mention fact or entry ids (f1, e2) in reasons; the candidate does not see them.
 
             Summary: two or three sentences in Turkish for the top of the CV, aimed at this job, built only from facts (use y1 for total experience and s0 for the candidate's own summary if present).
             - Write it in the usual Turkish CV style without "ben" and without first-person verbs: "ASP.NET Core ve SQL Server ile backend geliştiren, 4 yılı aşkın deneyime sahip yazılım uzmanı. ..."

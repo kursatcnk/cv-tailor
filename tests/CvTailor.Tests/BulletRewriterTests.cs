@@ -64,6 +64,13 @@ namespace CvTailor.Tests
             Assert.Equal(new[] { "Servisin API katmanını yazdım." }, alternatives);
         }
 
+        [Theory]
+        [InlineData("f1 ve f2 maddelerini birleştirerek teknolojiyi başa aldım.", "Birleştirerek teknolojiyi başa aldım.")]
+        [InlineData("İlan MSSQL istiyor; f3 maddesini buna göre yazdım.", "İlan MSSQL istiyor; buna göre yazdım.")]
+        [InlineData("Teknolojiyi başa aldım.", "Teknolojiyi başa aldım.")]
+        public void Internal_ids_are_removed_from_reasons(string reason, string expected) =>
+            Assert.Equal(expected, BulletRewriter.WithoutIds(reason));
+
         [Fact]
         public void Summary_without_real_sources_is_dropped()
         {
