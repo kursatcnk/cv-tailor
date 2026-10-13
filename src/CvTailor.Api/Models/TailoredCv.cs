@@ -14,6 +14,8 @@ namespace CvTailor.Api.Models
         public string ContentJson { get; set; } = "{}";
         // Her değişiklik: eski, yeni, neden, kabul/ret durumu, uydurma kontrolünün sonucu.
         public string ChangesJson { get; set; } = "[]";
+        // Bu CV'ye göre yazılmış ön yazı (paragraflar ve her birinin uydurma kontrolü); istenmediyse null.
+        public string? CoverLetterJson { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

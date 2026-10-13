@@ -10,7 +10,7 @@ namespace CvTailor.Tests
     // Böylece "AI'a kişisel veri gitmiyor" iddiası testle kanıtlanıyor.
     public class RewritePrivacyTests
     {
-        private sealed class RecordingProvider : IAiProvider
+        internal sealed class RecordingProvider : IAiProvider
         {
             public string? LastMessage { get; private set; }
             public string Reply { get; set; } = "{}";

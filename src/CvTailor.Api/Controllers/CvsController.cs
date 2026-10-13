@@ -19,14 +19,14 @@ namespace CvTailor.Api.Controllers
         // Hedef için yeni taslak. Her çağrı yeni bir sürüm; eskiler duruyor.
         [HttpPost]
         [EnableRateLimiting("ai")]
-        public async Task<IActionResult> Generate([FromBody] GenerateCvRequest request, CancellationToken cancellationToken)
-        {
-            var outcome = await _tailoring.GenerateAsync(User.GetUserId(), request.TargetId, cancellationToken);
-            if (outcome.Cv != null) return Ok(outcome.Cv);
-            if (outcome.Usage != null)
-                return StatusCode(StatusCodes.Status429TooManyRequests, new QuotaExceededResponse { Message = outcome.Error!, Usage = outcome.Usage });
-            return BadRequest(MessageResponse.Fail(outcome.Error!));
-        }
+        public async Task<IActionResult> Generate([FromBody] GenerateCvRequest request, CancellationToken cancellationToken) =>
+            WithQuota(await _tailoring.GenerateAsync(User.GetUserId(), request.TargetId, cancellationToken));
+
+        // Ön yazı: provadaki son hâliyle CV'den. Tekrar istenirse eskisinin yerine yenisi yazılıyor.
+        [HttpPost("{id:guid}/cover-letter")]
+        [EnableRateLimiting("ai")]
+        public async Task<IActionResult> CoverLetter(Guid id, CancellationToken cancellationToken) =>
+            WithQuota(await _tailoring.WriteCoverLetterAsync(User.GetUserId(), id, cancellationToken));
 
         [HttpGet]
         public async Task<ActionResult<List<TailoredCvSummaryDto>>> List([FromQuery] Guid targetId, CancellationToken cancellationToken) =>
@@ -95,6 +95,12 @@ namespace CvTailor.Api.Controllers
 
         private IActionResult ToResult(TailoringOutcome outcome) =>
             outcome.Cv != null ? Ok(outcome.Cv) : BadRequest(MessageResponse.Fail(outcome.Error!));
+
+        // AI harcayan işlemler: kota dolduysa 429 ve güncel kullanım.
+        private IActionResult WithQuota(TailoringOutcome outcome) =>
+            outcome.Usage != null
+                ? StatusCode(StatusCodes.Status429TooManyRequests, new QuotaExceededResponse { Message = outcome.Error!, Usage = outcome.Usage })
+                : ToResult(outcome);
     }
 
     public class GenerateCvRequest

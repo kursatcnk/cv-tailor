@@ -30,12 +30,14 @@ namespace CvTailor.Api.Services.Tailoring
         private readonly UsageService _usage;
         private readonly ILogger<TailoringService> _logger;
         private readonly SkillDictionary _dictionary;
+        private readonly CoverLetterWriter _coverLetters;
 
         public TailoringService(CvTailorDbContext context, TargetService targets, VaultService vault, RequirementMatcher matcher,
             ProfessionCatalog professions, BulletRewriter rewriter, FabricationGuard guard, AiService ai, UsageService usage,
-            SkillDictionary dictionary, ILogger<TailoringService> logger)
+            SkillDictionary dictionary, CoverLetterWriter coverLetters, ILogger<TailoringService> logger)
         {
             _dictionary = dictionary;
+            _coverLetters = coverLetters;
             _guard = guard;
             _context = context;
             _targets = targets;
@@ -171,6 +173,68 @@ namespace CvTailor.Api.Services.Tailoring
 
         public async Task<bool> DeleteAsync(Guid userId, Guid id, CancellationToken ct) =>
             await _context.TailoredCvs.Where(c => c.Id == id && c.JobTarget!.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+
+        // Ön yazı provadaki son hâliyle CV'den yazılıyor; kasadaki ama CV'ye girmeyen bir şey mektupta da olmasın.
+        // Her paragraf maddelerle aynı uydurma korumasından geçiyor. Yeniden istenirse eskisinin yerine geçiyor.
+        public async Task<TailoringOutcome> WriteCoverLetterAsync(Guid userId, Guid id, CancellationToken ct)
+        {
+            var cv = await Load(userId, id).FirstOrDefaultAsync(ct);
+            if (cv == null) return TailoringOutcome.Fail("CV bulunamadı.");
+            var provider = _ai.ResolveProvider();
+            if (provider == null) return TailoringOutcome.Fail("AI anahtarı tanımlı değil; ön yazı yazılamıyor.");
+
+            var dto = ToDto(cv, Read<CvDocument>(cv.ContentJson), Read<List<CvChange>>(cv.ChangesJson));
+            var analysis = Read<JobAnalysis>(cv.JobTarget!.AnalysisJson ?? "{}");
+            var profile = (await _vault.GetAsync(userId, ct)).Profile;
+            var months = ExperienceDuration.TotalMonths(profile.Experiences.Where(e => e.EmploymentType != "internship"), DateTime.UtcNow);
+            var changes = dto.Changes.ToDictionary(c => c.Id);
+            var input = new CoverLetterInput
+            {
+                TargetTitle = cv.JobTarget.Title,
+                Company = cv.JobTarget.Company,
+                Requirements = analysis.Requirements.Where(r => r.Text != null).OrderBy(r => r.Importance == "must" ? 0 : 1).Take(10)
+                    .Select(r => (r.Text!, r.Importance ?? "must")).ToList(),
+                TotalExperience = months > 0 ? ExperienceDuration.Format(months) : null,
+                Summary = dto.Document.SummaryChangeId != null && changes.TryGetValue(dto.Document.SummaryChangeId, out var s) ? s.FinalText : null,
+                Entries = dto.Document.Experiences.Concat(dto.Document.Projects)
+                    .Select(e => (e.Title, e.Subtitle, e.BulletChangeIds.Select(b => changes.TryGetValue(b, out var c) ? c.FinalText : null).OfType<string>().ToList()))
+                    .ToList(),
+                Skills = dto.Document.Skills.SelectMany(g => g.Items).ToList()
+            };
+
+            var user = await _context.Users.AsNoTracking().FirstAsync(u => u.Id == userId, ct);
+            var reservation = await _usage.TryReserveAsync(userId, user.Plan, "cover-letter");
+            if (reservation == null) return TailoringOutcome.QuotaExceeded(await _usage.GetUsageAsync(userId, user.Plan));
+            List<string> paragraphs;
+            try
+            {
+                (paragraphs, var completion) = await _coverLetters.WriteAsync(input, PiiMask.ForProfile(profile), ct);
+                await _usage.CompleteAsync(reservation.Value, completion.Model, completion.InputTokens + completion.OutputTokens);
+            }
+            catch (AiProviderException ex)
+            {
+                await _usage.ReleaseAsync(reservation.Value);
+                _logger.LogWarning(ex, "Ön yazı yazılamadı ({Provider}).", provider.Key);
+                return TailoringOutcome.Fail(ex.Message);
+            }
+            if (paragraphs.Count == 0) return TailoringOutcome.Fail("Ön yazı yazılamadı; tekrar dene.");
+
+            // Kaynak: CV'nin basılan metni, toplam süre ve ilanın kendisi (pozisyon ve şirket adını mektupta geçirmek uydurma değil).
+            var source = string.Join("\n", CvScorecard.PrintedText(dto), input.TotalExperience == null ? "" : $"Toplam iş deneyimi: {input.TotalExperience}",
+                input.TargetTitle, input.Company ?? "");
+            var terms = analysis.Requirements.SelectMany(r => r.Terms).Concat(analysis.Keywords).ToList();
+            var letter = new CoverLetterDto
+            {
+                Greeting = "Sayın Yetkili,",
+                Paragraphs = paragraphs.Select(p => new CoverParagraph { Text = p, Guard = _guard.Check(p, source, terms) }).ToList(),
+                Closing = string.IsNullOrWhiteSpace(profile.FullName) ? "Saygılarımla," : $"Saygılarımla,\n{profile.FullName}",
+                CreatedAt = DateTime.UtcNow
+            };
+            cv.CoverLetterJson = JsonSerializer.Serialize(letter, Json);
+            cv.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(ct);
+            return TailoringOutcome.Ok(ToDto(cv, Read<CvDocument>(cv.ContentJson), Read<List<CvChange>>(cv.ChangesJson)));
+        }
 
         // Önce/sonra karnesi. "Önce" kullanıcının yüklediği son CV'nin metni ve maddeleri; CV yüklemeden kasayı elle
         // doldurduysa (ya da metinde madde işareti yoksa) kasanın kendisi. Sorulara verilen cevaplar "önce"ye girmiyor.
@@ -496,6 +560,7 @@ namespace CvTailor.Api.Services.Tailoring
             Status = cv.Status,
             Document = document,
             Changes = changes,
+            CoverLetter = cv.CoverLetterJson == null ? null : Read<CoverLetterDto>(cv.CoverLetterJson),
             CreatedAt = DateTime.SpecifyKind(cv.CreatedAt, DateTimeKind.Utc),
             UpdatedAt = DateTime.SpecifyKind(cv.UpdatedAt, DateTimeKind.Utc)
         };

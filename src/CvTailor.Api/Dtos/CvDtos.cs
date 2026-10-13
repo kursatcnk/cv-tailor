@@ -123,8 +123,24 @@ namespace CvTailor.Api.Dtos
         public string? Notice { get; set; }
         // TC kimlik no, ev adresi gibi CV'de olmaması gerekenler
         public List<string> Warnings { get; set; } = new();
+        public CoverLetterDto? CoverLetter { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+    }
+
+    // Ön yazı. Hitap ve kapanışı kod yazıyor (ad AI'a gitmiyor); paragrafları AI, her biri ayrı ayrı uydurma kontrolünden geçiyor.
+    public class CoverLetterDto
+    {
+        public string Greeting { get; set; } = string.Empty;
+        public List<CoverParagraph> Paragraphs { get; set; } = new();
+        public string Closing { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class CoverParagraph
+    {
+        public string Text { get; set; } = string.Empty;
+        public GuardResult Guard { get; set; } = new();
     }
 
     // ATS testinin tek satırı: üretilen CV için de yüklenen dosya için de aynı biçim.

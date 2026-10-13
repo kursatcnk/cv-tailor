@@ -177,8 +177,37 @@
           <h2>CV'ye girmeyenler</h2>
           <p class="ct-hint">Kasandan silinmediler; sadece bu ilan için CV'ye alınmadılar.</p>
           <ul class="ct-dropped">${doc.dropped.map(d => `<li><span class="ct-tag">${DROP_KIND[d.kind] || "Öğe"}</span> ${esc(d.text)}<span class="ct-muted"> — ${esc(d.reason)}</span></li>`).join("")}</ul>
-        </section>` : ""}`;
+        </section>` : ""}
+      ${renderCoverLetter()}`;
   }
+
+  // Ön yazı: sadece bu CV'deki bilgilerle. Kasada doğrulanamayan paragraf maddeler gibi kırmızı gösteriliyor.
+  function renderCoverLetter() {
+    const letter = cv.coverLetter;
+    if (!letter) return `
+      <section class="ct-card">
+        <div class="ct-section-head"><h2>Ön yazı</h2><span>1 AI hakkı</span></div>
+        <p class="ct-hint">Bu CV'ye göre kısa bir ön yazı. Sadece CV'de olanları kullanır; şirket hakkında bilmediğimiz şeyleri yazmaz.</p>
+        <button class="ct-button ct-button-secondary ct-add" type="button" data-act="cover-letter">Ön yazı yaz</button>
+      </section>`;
+    return `
+      <section class="ct-card ct-letter">
+        <div class="ct-section-head"><h2>Ön yazı</h2><span>CV'deki maddeler değişirse yeniden yazdır</span></div>
+        <div class="ct-letter-body">
+          <p>${esc(letter.greeting)}</p>
+          ${letter.paragraphs.map(p => `
+            <p class="${p.guard.status === "flagged" ? "is-flagged" : ""}">${esc(p.text)}</p>
+            ${p.guard.status === "flagged" ? `<div class="ct-guard"><strong>CV'de doğrulanamadı</strong><ul>${p.guard.issues.map(i => `<li>${esc(i)}</li>`).join("")}</ul><p>Göndermeden önce bu cümleyi düzelt ya da çıkar.</p></div>` : ""}`).join("")}
+          <p class="ct-letter-closing">${esc(letter.closing)}</p>
+        </div>
+        <div class="ct-actions">
+          <button class="ct-button" type="button" data-act="copy-letter">Kopyala</button>
+          <button class="ct-button ct-button-secondary" type="button" data-act="cover-letter">Yeniden yaz</button>
+        </div>
+      </section>`;
+  }
+
+  const letterText = letter => [letter.greeting, ...letter.paragraphs.map(p => p.text), letter.closing].join("\n\n");
 
   async function load(id) {
     root.innerHTML = `<p class="ct-loading">CV yükleniyor...</p>`;
@@ -225,7 +254,31 @@
         cv = { ...data, warnings: cv.warnings };
         render();
         ui.toast(data.notice || "CV onaylandı.");
+        return;
       }
+      case "cover-letter": {
+        if (cv.coverLetter && !confirm("Mevcut ön yazının yerine yenisi yazılacak (1 AI hakkı).")) return;
+        button.disabled = true;
+        button.textContent = "Yazılıyor...";
+        const { ok, status, data } = await session.api.post(`/api/cvs/${cv.id}/cover-letter`);
+        ui.refreshUsage();
+        if (!ok) {
+          button.disabled = false;
+          button.textContent = cv.coverLetter ? "Yeniden yaz" : "Ön yazı yaz";
+          ui.toast(status === 429 && data?.code === "quota_exceeded" ? "Bu ayki AI hakkın doldu." : (data?.message || "Ön yazı yazılamadı."), "error");
+          return;
+        }
+        cv = { ...data, warnings: cv.warnings };
+        render();
+        return;
+      }
+      case "copy-letter":
+        try {
+          await navigator.clipboard.writeText(letterText(cv.coverLetter));
+          ui.toast(cv.coverLetter.paragraphs.some(p => p.guard.status === "flagged") ? "Kopyalandı. Kırmızı paragrafları göndermeden önce düzelt." : "Ön yazı kopyalandı.");
+        } catch {
+          ui.toast("Kopyalanamadı; metni seçip elle kopyala.", "error");
+        }
     }
   });
 
