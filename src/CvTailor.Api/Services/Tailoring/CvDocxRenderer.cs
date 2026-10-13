@@ -23,6 +23,11 @@ namespace CvTailor.Api.Services.Tailoring
             using var stream = new MemoryStream();
             using (var word = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
             {
+                // Dosya bilgileri PDF'le aynı: Word'ün başlık çubuğunda ve dosya özelliklerinde görünüyor.
+                word.PackageProperties.Title = CvPdfRenderer.Title(cv);
+                word.PackageProperties.Creator = doc.Header.FullName ?? "";
+                word.PackageProperties.Subject = cv.TargetTitle;
+
                 var main = word.AddMainDocumentPart();
                 AddStyles(main);
                 AddBulletNumbering(main);
@@ -31,8 +36,16 @@ namespace CvTailor.Api.Services.Tailoring
                 var h = doc.Header;
                 body.Append(Paragraph(new[] { Run(h.FullName ?? "", bold: true, size: 36) }, after: 40));
                 if (!string.IsNullOrEmpty(h.Headline)) body.Append(Paragraph(new[] { Run(h.Headline, size: 22, color: Muted) }, after: 40));
-                var contact = new[] { h.Email, h.Phone, h.Location }.Concat(h.Links).Where(x => !string.IsNullOrEmpty(x));
-                body.Append(Paragraph(new[] { Run(string.Join("  ·  ", contact), size: 18, color: Muted) }, after: h.Personal.Count > 0 ? 40 : 160));
+                // İletişim satırı gerçek Word linkleri; e-postaya tıklayınca posta programı açılıyor.
+                var contact = new List<OpenXmlElement>();
+                foreach (var (label, url) in CvPdfRenderer.ContactParts(h))
+                {
+                    if (contact.Count > 0) contact.Add(Run("  ·  ", size: 18, color: Muted));
+                    contact.Add(url == null
+                        ? Run(label, size: 18, color: Muted)
+                        : new Hyperlink(Run(label, size: 18, color: Muted)) { Id = main.AddHyperlinkRelationship(new Uri(url), true).Id });
+                }
+                body.Append(Paragraph(contact, after: h.Personal.Count > 0 ? 40 : 160));
                 if (h.Personal.Count > 0)
                     body.Append(Paragraph(new[] { Run(string.Join("  ·  ", h.Personal), size: 18, color: Muted) }, after: 160));
 
@@ -116,7 +129,7 @@ namespace CvTailor.Api.Services.Tailoring
             return p;
         }
 
-        private static Paragraph Paragraph(IEnumerable<Run> runs, int before = 0, int after = 60)
+        private static Paragraph Paragraph(IEnumerable<OpenXmlElement> runs, int before = 0, int after = 60)
         {
             var p = new Paragraph(new ParagraphProperties(new SpacingBetweenLines { Before = before.ToString(), After = after.ToString() }));
             p.Append(runs);

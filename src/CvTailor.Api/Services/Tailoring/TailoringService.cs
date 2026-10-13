@@ -29,10 +29,13 @@ namespace CvTailor.Api.Services.Tailoring
         private readonly AiService _ai;
         private readonly UsageService _usage;
         private readonly ILogger<TailoringService> _logger;
+        private readonly SkillDictionary _dictionary;
 
         public TailoringService(CvTailorDbContext context, TargetService targets, VaultService vault, RequirementMatcher matcher,
-            ProfessionCatalog professions, BulletRewriter rewriter, FabricationGuard guard, AiService ai, UsageService usage, ILogger<TailoringService> logger)
+            ProfessionCatalog professions, BulletRewriter rewriter, FabricationGuard guard, AiService ai, UsageService usage,
+            SkillDictionary dictionary, ILogger<TailoringService> logger)
         {
+            _dictionary = dictionary;
             _guard = guard;
             _context = context;
             _targets = targets;
@@ -168,6 +171,36 @@ namespace CvTailor.Api.Services.Tailoring
 
         public async Task<bool> DeleteAsync(Guid userId, Guid id, CancellationToken ct) =>
             await _context.TailoredCvs.Where(c => c.Id == id && c.JobTarget!.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+
+        // Önce/sonra karnesi. "Önce" kullanıcının yüklediği son CV'nin metni ve maddeleri; CV yüklemeden kasayı elle
+        // doldurduysa (ya da metinde madde işareti yoksa) kasanın kendisi. Sorulara verilen cevaplar "önce"ye girmiyor.
+        public async Task<Scorecard?> ScorecardAsync(Guid userId, Guid id, CancellationToken ct)
+        {
+            var cv = await Load(userId, id).AsNoTracking().FirstOrDefaultAsync(ct);
+            if (cv == null) return null;
+            var dto = ToDto(cv, Read<CvDocument>(cv.ContentJson), Read<List<CvChange>>(cv.ChangesJson));
+            var analysis = Read<JobAnalysis>(cv.JobTarget!.AnalysisJson ?? "{}");
+            var profile = (await _vault.GetAsync(userId, ct)).Profile;
+            var imported = await _context.CvImports.Where(i => i.UserId == userId).OrderByDescending(i => i.ImportedAt)
+                .Select(i => i.ExtractedText).FirstOrDefaultAsync(ct);
+
+            var vaultBullets = profile.Experiences.SelectMany(e => e.Achievements).Concat(profile.Projects.SelectMany(p => p.Achievements))
+                .Where(a => a.RelatedId == null && a.Source != "interview")
+                .Select(a => a.Text!)
+                .ToList();
+            var beforeBullets = imported != null && CvScorecard.BulletLines(imported) is { Count: > 0 } lines ? lines : vaultBullets;
+            var beforeText = imported ?? string.Join("\n", new[] { profile.Headline, profile.Summary }
+                .Concat(profile.Experiences.Select(e => $"{e.Title} {e.Company}"))
+                .Concat(vaultBullets)
+                .Concat(profile.Skills.Select(s => s.Name))
+                .Concat(profile.Educations.Select(e => $"{e.School} {e.Field} {e.Degree}"))
+                .Concat(profile.Certificates.Select(c => c.Name))
+                .Where(x => !string.IsNullOrWhiteSpace(x)));
+
+            var card = CvScorecard.Compute(analysis, _dictionary, beforeText, beforeBullets, CvScorecard.PrintedText(dto), CvScorecard.PrintedBullets(dto));
+            card.BeforeLabel = imported != null ? "Yüklediğin CV" : "Kasandaki bilgiler";
+            return card;
+        }
 
         private IQueryable<TailoredCv> Load(Guid userId, Guid id) =>
             _context.TailoredCvs.Include(c => c.JobTarget).Where(c => c.Id == id && c.JobTarget!.UserId == userId);

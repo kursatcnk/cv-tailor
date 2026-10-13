@@ -13,6 +13,8 @@
   let cv = null;
   let ats = null;
   let atsRequest = 0;
+  let scorecard = null;
+  let scorecardRequest = 0;
 
   const currentText = c => c.editedText ?? c.after;
   const isUnchanged = c => c.before === c.after && !c.editedText;
@@ -97,6 +99,41 @@
       </details>`;
   }
 
+  // Önce/sonra karnesi. Düşen satır da olduğu gibi gösteriliyor (CV'ye sığmayan bir iş çıkınca kelime kaybolabiliyor).
+  function renderScorecard() {
+    if (!scorecard) return "";
+    const value = (n, total) => total ? `${n}/${total}` : `${n}`;
+    return `
+      <section class="ct-card ct-scorecard">
+        <div class="ct-section-head"><h2>Önce / sonra</h2><span>${esc(scorecard.beforeLabel)} → bu CV</span></div>
+        <table>
+          <tbody>${scorecard.rows.map(r => `
+            <tr>
+              <th scope="row">${esc(r.label)}<small>${esc(r.hint)}</small></th>
+              <td>${value(r.before, r.total)}</td>
+              <td aria-hidden="true">→</td>
+              <td class="${r.after > r.before ? "is-up" : r.after < r.before ? "is-down" : ""}">${value(r.after, r.total)}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+        ${scorecard.missingRequirements.length ? `
+          <div class="ct-hint">
+            <p>CV'de hâlâ karşılığı görünmeyen zorunlu gereksinimler:</p>
+            <ul>${scorecard.missingRequirements.map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+            <p>Kasanda kanıtı olmadığı için eklemedik. Deneyimin varsa kasana yaz ya da hedef ekranındaki soruları cevapla.</p>
+          </div>` : ""}
+      </section>`;
+  }
+
+  async function loadScorecard() {
+    const request = ++scorecardRequest;
+    const { ok, data } = await session.api.get(`/api/cvs/${cv.id}/scorecard`);
+    if (!ok || request !== scorecardRequest) return;
+    scorecard = data;
+    const box = root.querySelector("#ct-scorecard");
+    if (box) box.innerHTML = renderScorecard();
+  }
+
   async function loadAts() {
     const request = ++atsRequest;
     const { ok, data } = await session.api.get(`/api/cvs/${cv.id}/ats`);
@@ -130,6 +167,7 @@
       <p class="ct-summary-line">${rewritten} madde yeniden yazıldı${pending ? ` · <strong>${pending} madde onay bekliyor</strong>` : ""} · ${doc.dropped.length} öğe CV'ye girmedi</p>
       <p class="ct-hint">PDF ve Word dosyası her maddenin son hâliyle hazırlanır: kabul ettiklerin yeni hâliyle, diğerleri orijinaliyle.</p>
       <div id="ct-ats">${renderAts()}</div>
+      <div id="ct-scorecard">${renderScorecard()}</div>
 
       ${doc.summaryChangeId && byId[doc.summaryChangeId] ? `<section class="ct-card"><h2>Özet</h2>${renderChange(byId[doc.summaryChangeId])}</section>` : ""}
       ${doc.experiences.length ? `<section class="ct-card"><h2>Deneyim</h2>${doc.experiences.map(e => renderEntry(e, byId)).join("")}</section>` : ""}
@@ -148,8 +186,10 @@
     if (!ok) { root.innerHTML = `<p class="ct-muted">${esc(data?.message || "CV bulunamadı.")}</p>`; return; }
     cv = data;
     ats = null;
+    scorecard = null;
     render();
     loadAts();
+    loadScorecard();
   }
 
   async function update(changeId, body) {
@@ -157,8 +197,9 @@
     if (!ok) { ui.toast(data?.message || "Kaydedilemedi.", "error"); return; }
     cv = data;
     render();
-    // Basılan metin değişti; test yeniden. Eski sonuç yenisi gelene kadar ekranda kalıyor.
+    // Basılan metin değişti; ATS testi ve karne yeniden. Eski sonuç yenisi gelene kadar ekranda kalıyor.
     loadAts();
+    loadScorecard();
     const changed = cv.changes.find(c => c.id === changeId);
     if (changed?.guard.status === "flagged" && body.text) ui.toast("Kaydedildi, ama yazdığın metinde kasada olmayan bilgi var.", "error");
   }

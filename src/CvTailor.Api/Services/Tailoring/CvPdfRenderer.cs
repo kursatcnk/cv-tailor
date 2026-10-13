@@ -31,6 +31,15 @@ namespace CvTailor.Api.Services.Tailoring
         {
             var doc = cv.Document;
             var changes = cv.Changes.ToDictionary(c => c.Id);
+            var metadata = new DocumentMetadata
+            {
+                Title = Title(cv),
+                Author = doc.Header.FullName ?? "",
+                Subject = cv.TargetTitle,
+                Keywords = string.Join(", ", doc.Skills.SelectMany(g => g.Items).Take(20)),
+                Creator = "CV Tailor",
+                Producer = "CV Tailor"
+            };
 
             return Document.Create(container => container.Page(page =>
             {
@@ -93,7 +102,7 @@ namespace CvTailor.Api.Services.Tailoring
                         }
                     }
                 });
-            }));
+            })).WithMetadata(metadata);
         }
 
         private static void Header(ColumnDescriptor column, CvHeader h)
@@ -103,11 +112,36 @@ namespace CvTailor.Api.Services.Tailoring
                 c.Spacing(2);
                 c.Item().Text(h.FullName ?? "").FontSize(18).Bold();
                 if (!string.IsNullOrEmpty(h.Headline)) c.Item().Text(h.Headline).FontSize(11).FontColor(Muted);
-                var contact = new[] { h.Email, h.Phone, h.Location }.Concat(h.Links).Where(x => !string.IsNullOrEmpty(x));
-                c.Item().Text(string.Join("  ·  ", contact)).FontSize(9).FontColor(Muted);
+                // E-posta, telefon ve linkler tıklanabilir; işe alımcı PDF'ten doğrudan yazabilsin.
+                c.Item().Text(t =>
+                {
+                    t.DefaultTextStyle(x => x.FontSize(9).FontColor(Muted));
+                    var first = true;
+                    foreach (var (label, url) in ContactParts(h))
+                    {
+                        if (!first) t.Span("  ·  ");
+                        first = false;
+                        if (url == null) t.Span(label); else t.Hyperlink(label, url);
+                    }
+                });
                 if (h.Personal.Count > 0) c.Item().Text(string.Join("  ·  ", h.Personal)).FontSize(9).FontColor(Muted);
             });
         }
+
+        // Başlıktaki iletişim satırı: yazılan metin ve (varsa) gittiği adres. Word çıktısı da aynısını kullanıyor.
+        internal static IEnumerable<(string Label, string? Url)> ContactParts(CvHeader h)
+        {
+            if (!string.IsNullOrWhiteSpace(h.Email)) yield return (h.Email, $"mailto:{h.Email}");
+            if (!string.IsNullOrWhiteSpace(h.Phone)) yield return (h.Phone, $"tel:{new string(h.Phone.Where(ch => char.IsDigit(ch) || ch == '+').ToArray())}");
+            if (!string.IsNullOrWhiteSpace(h.Location)) yield return (h.Location, null);
+            // Linkler CV'de şemasız yazılıyor ("github.com/ali"), adres https ile.
+            foreach (var link in h.Links.Where(l => !string.IsNullOrWhiteSpace(l)))
+                yield return (link, link.Contains("://") ? link : $"https://{link}");
+        }
+
+        // Dosya bilgisindeki başlık: okuyucunun sekme adında ve aramada görünen ad.
+        internal static string Title(TailoredCvDto cv) =>
+            string.Join(" - ", new[] { cv.Document.Header.FullName, cv.TargetTitle }.Where(s => !string.IsNullOrWhiteSpace(s))) + " CV";
 
         private static void Section(ColumnDescriptor column, string key, Action<ColumnDescriptor> body)
         {

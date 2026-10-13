@@ -71,6 +71,14 @@ namespace CvTailor.Api.Controllers
             return Ok(AtsRoundTrip.Check(cv));
         }
 
+        // Önce/sonra karnesi: elindeki CV ile bu CV aynı ölçülerle.
+        [HttpGet("{id:guid}/scorecard")]
+        public async Task<ActionResult<Scorecard>> Scorecard(Guid id, CancellationToken cancellationToken)
+        {
+            var card = await _tailoring.ScorecardAsync(User.GetUserId(), id, cancellationToken);
+            return card == null ? NotFound(MessageResponse.Fail("CV bulunamadı.")) : Ok(card);
+        }
+
         private static string FileName(TailoredCvDto cv, string extension)
         {
             var name = string.Join("-", new[] { cv.Document.Header.FullName, cv.TargetTitle, "CV" }.Where(s => !string.IsNullOrWhiteSpace(s)));
