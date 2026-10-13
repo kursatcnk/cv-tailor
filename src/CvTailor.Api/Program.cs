@@ -250,3 +250,6 @@ app.MapGet("/api/csrf", (HttpContext context, IAntiforgery antiforgery) =>
 app.MapControllers();
 
 app.Run();
+
+// Entegrasyon testleri uygulamayı WebApplicationFactory<Program> ile ayağa kaldırıyor.
+public partial class Program;

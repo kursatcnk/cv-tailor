@@ -8,12 +8,14 @@ on:
 jobs:
   test:
     # PDF testleri sistem fontlarına bakıyor; geliştirme ortamıyla aynı olsun diye Windows.
+    # Windows makinesinde SQL Server LocalDB de hazır geliyor; API testleri onu kullanıyor.
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - run: sqllocaldb start MSSQLLocalDB
       - run: dotnet test CvTailor.sln --configuration Release
       # Eşleştirme ve uydurma koruması kurgusal vakalarda eşiklerin altına düşerse kırmızı.
       - run: dotnet run --project tools/CvTailor.Eval --configuration Release -- --check
