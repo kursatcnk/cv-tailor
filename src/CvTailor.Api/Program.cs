@@ -14,6 +14,7 @@ using CvTailor.Api.Services;
 using CvTailor.Api.Services.Ai;
 using CvTailor.Api.Services.Cv;
 using CvTailor.Api.Services.Matching;
+using CvTailor.Api.Services.Privacy;
 using CvTailor.Api.Services.Interview;
 using CvTailor.Api.Services.Tailoring;
 using CvTailor.Api.Services.Targets;
@@ -121,6 +122,7 @@ builder.Services.AddResponseCompression(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<DataExportService>();
 builder.Services.AddScoped<UsageService>();
 builder.Services.AddSingleton<CvTextExtractor>();
 builder.Services.AddSingleton<CvParser>();

@@ -1,5 +1,6 @@
 using CvTailor.Api.Dtos;
 using CvTailor.Api.Services;
+using CvTailor.Api.Services.Privacy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -13,8 +14,18 @@ namespace CvTailor.Api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly AccountService _account;
+        private readonly DataExportService _export;
 
-        public AccountController(AccountService account) => _account = account;
+        public AccountController(AccountService account, DataExportService export)
+        {
+            _account = account;
+            _export = export;
+        }
+
+        // KVKK: bizde ne varsa tek dosyada. AI kullanmıyor; dosya her istekte o anki veriden üretiliyor.
+        [HttpGet("export")]
+        public async Task<IActionResult> Export(CancellationToken cancellationToken) =>
+            File(await _export.ExportAsync(User.GetUserId(), cancellationToken), "application/json", $"cv-tailor-verilerim-{DateTime.UtcNow:yyyy-MM-dd}.json");
 
         [HttpGet("me")]
         public async Task<ActionResult<MeResponse>> Me()
