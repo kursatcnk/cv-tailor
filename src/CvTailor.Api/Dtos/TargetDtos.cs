@@ -76,6 +76,18 @@ namespace CvTailor.Api.Dtos
         public DateTime CreatedAt { get; set; }
     }
 
+    // CV'lerim listesinin satırı: kasanın bugünkü hâliyle uyum ve bu hedefin son CV'si.
+    public class TargetListItemDto : TargetSummaryDto
+    {
+        public int MustStrong { get; set; }
+        public int MustWeak { get; set; }
+        public int MustMissing { get; set; }
+        public int CvCount { get; set; }
+        public Guid? LatestCvId { get; set; }
+        // draft | ready
+        public string? LatestCvStatus { get; set; }
+    }
+
     public class TargetDto : TargetSummaryDto
     {
         public string? PostingText { get; set; }

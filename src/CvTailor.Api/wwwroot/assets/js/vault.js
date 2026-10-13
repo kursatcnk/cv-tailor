@@ -59,6 +59,7 @@
   const LEVELS = { error: "hata", warn: "uyarı", info: "öneri" };
   let healthTimer = 0;
   let healthRequest = 0;
+  let lastHealth = null;
 
   function scheduleHealth() {
     clearTimeout(healthTimer);
@@ -77,6 +78,8 @@
   }
 
   function renderHealth(report) {
+    lastHealth = report;
+    markIssues();
     const panel = $("#ct-health");
     panel.hidden = false;
     const counts = Object.keys(LEVELS).map(level => [level, report.issues.filter(i => i.level === level).length]).filter(([, n]) => n);
@@ -108,6 +111,10 @@
   $("#ct-health-list").addEventListener("click", event => {
     const path = event.target.dataset.goto;
     if (!path) return;
+    // Sorun kapalı bir kayıttaysa önce kaydı aç.
+    const owner = path.match(/^(experiences|educations|projects|certificates)\.(\d+)/);
+    const obj = owner && state.profile[owner[1]][Number(owner[2])];
+    if (obj && !isOpen(obj)) { openItems.add(obj); render(); }
     const input = $("#ct-editor").querySelector(`[data-bind="${fieldFor(path)}"]`);
     if (!input) return;
     input.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -279,7 +286,7 @@
         <span class="ct-bullets-label">Maddeler</span>
         ${items.map((a, i) => `
           <div class="ct-bullet">
-            <textarea class="ct-textarea" data-bind="${path}.${i}.text" rows="2">${esc(a.text)}</textarea>
+            <textarea class="ct-textarea" data-bind="${path}.${i}.text" rows="1">${esc(a.text)}</textarea>
             <button class="ct-icon-button" type="button" data-action="remove" data-path="${path}" data-index="${i}" aria-label="Maddeyi sil">×</button>
           </div>
           <div class="ct-coach" data-coach="${path}.${i}.text" aria-live="polite" hidden></div>`).join("")}
@@ -296,20 +303,47 @@
       </div>`;
   }
 
-  function section(title, hint, body, addAction, addLabel) {
+  function section(id, title, hint, body, addAction, addLabel) {
     return `
-      <section class="ct-card ct-editor-section">
+      <section class="ct-card ct-editor-section" id="ct-sec-${id}">
         <div class="ct-section-head"><h2>${title}</h2>${hint ? `<span>${hint}</span>` : ""}</div>
         ${body}
         ${addAction ? `<button class="ct-button ct-button-secondary ct-add" type="button" data-action="${addAction}">${addLabel}</button>` : ""}
       </section>`;
   }
 
+  // Kayıtlar kapalı geliyor: başlık, tarih ve madde sayısı tek satırda, tıklayınca form açılıyor.
+  // Yüklenen CV kontrol edilirken hepsi açık; okunan her şeye bakılsın. Açık olanlar nesneyle tutuluyor,
+  // taşıyınca ya da silince sıra numarası kaysa da doğru kayıt açık kalıyor.
+  const openItems = new WeakSet();
+  const isOpen = obj => state.reviewing || openItems.has(obj);
+  const period = x => [x.startDate, x.isCurrent ? "Devam ediyor" : x.endDate].filter(Boolean).join(" – ");
+
+  function item(listPath, index, count, title, meta, body) {
+    const obj = getPath(listPath)[index];
+    const open = isOpen(obj);
+    return `
+      <div class="ct-item${open ? " is-open" : ""}">
+        <div class="ct-item-head">
+          <button class="ct-item-toggle" type="button" data-action="toggle" data-path="${listPath}" data-index="${index}" aria-expanded="${open}">
+            <span class="ct-item-title"><strong>${esc(title)}</strong>${meta ? `<span>${esc(meta)}</span>` : ""}</span>
+            <span class="ct-item-issues" data-issues="${listPath}.${index}"></span>
+          </button>
+          ${itemTools(listPath, index, count)}
+        </div>
+        ${open ? body : ""}
+      </div>`;
+  }
+
+  // Yeni eklenen kayıt doldurulsun diye açık geliyor.
+  const opened = obj => { openItems.add(obj); return obj; };
+  const countBullets = x => (x.achievements || []).filter(a => a.text?.trim()).length;
+
   function renderExperiences() {
     const list = state.profile.experiences;
-    return list.map((e, i) => `
-      <div class="ct-item">
-        <div class="ct-item-head"><strong>${esc(e.title || "Yeni deneyim")}${e.company ? ` · ${esc(e.company)}` : ""}</strong>${itemTools("experiences", i, list.length)}</div>
+    return list.map((e, i) => item("experiences", i, list.length,
+      [e.title, e.company].filter(Boolean).join(" · ") || "Yeni deneyim",
+      [period(e), `${countBullets(e)} madde`].filter(Boolean).join(" · "), `
         <div class="ct-grid">
           ${field("Pozisyon", `experiences.${i}.title`)}
           ${field("Şirket", `experiences.${i}.company`)}
@@ -321,38 +355,35 @@
           </label>
           ${dates(`experiences.${i}`, true)}
         </div>
-        ${achievements(`experiences.${i}.achievements`)}
-      </div>`).join("") || `<p class="ct-muted">Henüz deneyim yok.</p>`;
+        ${achievements(`experiences.${i}.achievements`)}`)).join("") || `<p class="ct-muted">Henüz deneyim yok.</p>`;
   }
 
   function renderEducations() {
     const list = state.profile.educations;
-    return list.map((e, i) => `
-      <div class="ct-item">
-        <div class="ct-item-head"><strong>${esc(e.school || "Yeni eğitim")}</strong>${itemTools("educations", i, list.length)}</div>
+    return list.map((e, i) => item("educations", i, list.length,
+      e.school || "Yeni eğitim",
+      [[e.field, e.degree].filter(Boolean).join(", "), period(e)].filter(Boolean).join(" · "), `
         <div class="ct-grid">
           ${field("Okul", `educations.${i}.school`)}
           ${field("Bölüm", `educations.${i}.field`)}
           ${field("Derece", `educations.${i}.degree`, { placeholder: "Lisans" })}
           ${field("Not ortalaması", `educations.${i}.gpa`, { placeholder: "3.12/4" })}
           ${dates(`educations.${i}`, false)}
-        </div>
-      </div>`).join("") || `<p class="ct-muted">Henüz eğitim yok.</p>`;
+        </div>`)).join("") || `<p class="ct-muted">Henüz eğitim yok.</p>`;
   }
 
   function renderProjects() {
     const list = state.profile.projects;
-    return list.map((p, i) => `
-      <div class="ct-item">
-        <div class="ct-item-head"><strong>${esc(p.name || "Yeni proje")}</strong>${itemTools("projects", i, list.length)}</div>
+    return list.map((p, i) => item("projects", i, list.length,
+      p.name || "Yeni proje",
+      [p.description, `${countBullets(p)} madde`].filter(Boolean).join(" · "), `
         <div class="ct-grid">
           ${field("Proje adı", `projects.${i}.name`)}
           ${field("Link", `projects.${i}.url`, { placeholder: "github.com/..." })}
           ${field("Kısa tanım", `projects.${i}.description`, { wide: true })}
           ${dates(`projects.${i}`, false)}
         </div>
-        ${achievements(`projects.${i}.achievements`)}
-      </div>`).join("") || `<p class="ct-muted">Henüz proje yok. İş dışında yaptığın işler (okul, kişisel, açık kaynak) buraya.</p>`;
+        ${achievements(`projects.${i}.achievements`)}`)).join("") || `<p class="ct-muted">Henüz proje yok. İş dışında yaptığın işler (okul, kişisel, açık kaynak) buraya.</p>`;
   }
 
   function renderSkills() {
@@ -372,28 +403,30 @@
 
   function renderCertificates() {
     const list = state.profile.certificates;
-    return list.map((c, i) => `
-      <div class="ct-item">
-        <div class="ct-item-head"><strong>${esc(c.name || "Yeni sertifika")}</strong>${itemTools("certificates", i, list.length)}</div>
+    return list.map((c, i) => item("certificates", i, list.length,
+      c.name || "Yeni sertifika",
+      [c.issuer, c.date].filter(Boolean).join(" · "), `
         <div class="ct-grid">
           ${field("Sertifika", `certificates.${i}.name`)}
           ${field("Veren kurum", `certificates.${i}.issuer`)}
           ${field("Tarih", `certificates.${i}.date`, { placeholder: "2024-05" })}
           ${field("Link", `certificates.${i}.url`)}
-        </div>
-      </div>`).join("") || `<p class="ct-muted">Sertifika yok.</p>`;
+        </div>`)).join("") || `<p class="ct-muted">Sertifika yok.</p>`;
   }
 
-  function summaryLine() {
+  // Bölümlere atlama; sayılar kasanın özeti yerine geçiyor.
+  function jumpNav() {
     const p = state.profile;
-    const bullets = [...p.experiences, ...p.projects].reduce((sum, x) => sum + (x.achievements?.length || 0), 0);
-    return [`${p.experiences.length} deneyim`, `${bullets} madde`, `${p.educations.length} eğitim`, `${p.projects.length} proje`, `${p.skills.length} beceri`].join(" · ");
+    const links = [["personal", "Kişisel", null], ["experience", "Deneyim", p.experiences.length], ["education", "Eğitim", p.educations.length],
+      ["projects", "Projeler", p.projects.length], ["skills", "Beceriler", p.skills.length], ["certificates", "Sertifikalar", p.certificates.length]];
+    return `<nav class="ct-jump" aria-label="Kasa bölümleri">${links.map(([id, label, n]) =>
+      `<a href="#vault" data-jump="${id}">${label}${n !== null ? ` <span>${n}</span>` : ""}</a>`).join("")}</nav>`;
   }
 
   function render() {
     $("#ct-editor").innerHTML = `
-      <p class="ct-summary-line">${summaryLine()}</p>
-      ${section("Kişisel bilgiler", "", `
+      ${jumpNav()}
+      ${section("personal", "Kişisel bilgiler", "", `
         <div class="ct-grid">
           ${field("Ad soyad", "fullName")}
           ${field("Unvan", "headline", { placeholder: "Backend Developer" })}
@@ -412,11 +445,28 @@
           ${field("Ehliyet", "driverLicense", { placeholder: "B" })}
           ${select("Seyahat", "canTravel", TRAVEL, "bool")}
         </div>`)}
-      ${section("Deneyim", "En yeniden eskiye", renderExperiences(), "add-experience", "+ Deneyim ekle")}
-      ${section("Eğitim", "", renderEducations(), "add-education", "+ Eğitim ekle")}
-      ${section("Projeler", "", renderProjects(), "add-project", "+ Proje ekle")}
-      ${section("Beceriler", "Yazıp Enter'a bas", renderSkills())}
-      ${section("Sertifikalar", "", renderCertificates(), "add-certificate", "+ Sertifika ekle")}`;
+      ${section("experience", "Deneyim", "En yeniden eskiye", renderExperiences(), "add-experience", "+ Deneyim ekle")}
+      ${section("education", "Eğitim", "", renderEducations(), "add-education", "+ Eğitim ekle")}
+      ${section("projects", "Projeler", "", renderProjects(), "add-project", "+ Proje ekle")}
+      ${section("skills", "Beceriler", "Yazıp Enter'a bas", renderSkills())}
+      ${section("certificates", "Sertifikalar", "", renderCertificates(), "add-certificate", "+ Sertifika ekle")}`;
+    editor.querySelectorAll(".ct-bullet textarea").forEach(grow);
+    markIssues();
+  }
+
+  // Madde kutusu yazdıkça uzuyor; iki satırlık maddede boşluk, uzun maddede kaydırma çubuğu olmasın.
+  function grow(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight + 2}px`;
+  }
+
+  // Kapalı kayıtların başlığında o kayıttaki sağlık uyarılarının sayısı.
+  function markIssues() {
+    editor.querySelectorAll("[data-issues]").forEach(el => {
+      const prefix = el.dataset.issues;
+      const n = (lastHealth?.issues || []).filter(i => i.path && (i.path === prefix || i.path.startsWith(prefix + "."))).length;
+      el.textContent = n ? `${n} uyarı` : "";
+    });
   }
 
   // ---- Form olayları ----
@@ -432,6 +482,7 @@
     else if (event.target.dataset.type === "bool") value = value === "" ? null : value === "true";
     setPath(path, value);
     setDirty(true);
+    if (event.target.closest(".ct-bullet")) grow(event.target);
     // "Hâlâ burada çalışıyorum" seçilince bitiş tarihi anlamını yitiriyor.
     if (path.endsWith(".isCurrent")) {
       const end = editor.querySelector(`[data-bind="${path.replace(".isCurrent", ".endDate")}"]`);
@@ -491,11 +542,25 @@
   });
 
   editor.addEventListener("click", event => {
+    const jump = event.target.closest("[data-jump]");
+    if (jump) {
+      event.preventDefault();
+      $(`#ct-sec-${jump.dataset.jump}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const { action, path } = button.dataset;
     const index = Number(button.dataset.index);
     const p = state.profile;
+
+    // Aç/kapat bir düzenleme değil; kaydet çubuğu çıkmasın.
+    if (action === "toggle") {
+      const obj = getPath(path)[index];
+      if (openItems.has(obj)) openItems.delete(obj); else openItems.add(obj);
+      render();
+      return;
+    }
 
     if (action === "remove") {
       if (button.dataset.confirm && !confirm("Bu kayıt silinsin mi?")) return;
@@ -507,13 +572,13 @@
     } else if (action === "add-bullet") {
       getPath(path).push({ id: null, text: "", source: "manual" });
     } else if (action === "add-experience") {
-      p.experiences.unshift({ id: null, company: "", title: "", isCurrent: false, achievements: [] });
+      p.experiences.unshift(opened({ id: null, company: "", title: "", isCurrent: false, achievements: [] }));
     } else if (action === "add-education") {
-      p.educations.push({ id: null, school: "" });
+      p.educations.push(opened({ id: null, school: "" }));
     } else if (action === "add-project") {
-      p.projects.push({ id: null, name: "", achievements: [] });
+      p.projects.push(opened({ id: null, name: "", achievements: [] }));
     } else if (action === "add-certificate") {
-      p.certificates.push({ id: null, name: "" });
+      p.certificates.push(opened({ id: null, name: "" }));
     } else return;
 
     setDirty(true);

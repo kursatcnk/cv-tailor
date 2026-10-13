@@ -18,7 +18,7 @@ namespace CvTailor.Api.Controllers
         public TargetsController(TargetService targets) => _targets = targets;
 
         [HttpGet]
-        public async Task<ActionResult<List<TargetSummaryDto>>> List(CancellationToken cancellationToken) =>
+        public async Task<ActionResult<List<TargetListItemDto>>> List(CancellationToken cancellationToken) =>
             Ok(await _targets.ListAsync(User.GetUserId(), cancellationToken));
 
         [HttpGet("{id:guid}")]

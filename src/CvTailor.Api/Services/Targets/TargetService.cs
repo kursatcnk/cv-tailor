@@ -130,14 +130,36 @@ namespace CvTailor.Api.Services.Targets
             return TargetOutcome.Ok(dto);
         }
 
-        public async Task<List<TargetSummaryDto>> ListAsync(Guid userId, CancellationToken ct)
+        // Listede her hedefin uyumu kasanın bugünkü hâliyle hesaplanıyor; eşleştirici kodla çalıştığı için ucuz.
+        public async Task<List<TargetListItemDto>> ListAsync(Guid userId, CancellationToken ct)
         {
             var targets = await _context.JobTargets
                 .AsNoTracking()
                 .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync(ct);
-            return targets.Select(t => (TargetSummaryDto)ToDto(t, Read(t))).ToList();
+            var cvs = await _context.TailoredCvs
+                .AsNoTracking()
+                .Where(c => c.JobTarget!.UserId == userId)
+                .Select(c => new { c.Id, c.JobTargetId, c.Status, c.CreatedAt })
+                .ToListAsync(ct);
+            var profile = (await _vault.GetAsync(userId, ct)).Profile;
+            var today = DateTime.UtcNow;
+
+            return targets.Select(t =>
+            {
+                var analysis = Read(t);
+                var summary = ToDto(t, analysis);
+                var match = _matcher.Match(analysis, profile, today);
+                var own = cvs.Where(c => c.JobTargetId == t.Id).OrderByDescending(c => c.CreatedAt).ToList();
+                return new TargetListItemDto
+                {
+                    Id = summary.Id, Title = summary.Title, Company = summary.Company, Seniority = summary.Seniority,
+                    MustCount = summary.MustCount, NiceCount = summary.NiceCount, CreatedAt = summary.CreatedAt,
+                    MustStrong = match.MustStrong, MustWeak = match.MustWeak, MustMissing = match.MustMissing,
+                    CvCount = own.Count, LatestCvId = own.FirstOrDefault()?.Id, LatestCvStatus = own.FirstOrDefault()?.Status
+                };
+            }).ToList();
         }
 
         public async Task<TargetDto?> GetAsync(Guid userId, Guid id, CancellationToken ct)

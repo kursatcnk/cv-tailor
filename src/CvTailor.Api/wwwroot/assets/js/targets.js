@@ -16,19 +16,24 @@
 
   // ---- Hedef detayı ----
 
+  // Özet karar kartın en üstünde, hangi adım açık olursa olsun görünüyor.
+  function renderVerdict(match) {
+    return `
+      <div class="ct-verdict">
+        <strong>${esc(match.verdict)}</strong>
+        <p>${esc(match.advice)}</p>
+        <div class="ct-meter" aria-hidden="true">
+          <i class="is-strong" style="flex:${match.mustStrong}"></i><i class="is-weak" style="flex:${match.mustWeak}"></i><i class="is-missing" style="flex:${match.mustMissing}"></i>
+        </div>
+        <div class="ct-meter-legend"><span class="is-strong">${match.mustStrong} güçlü</span><span class="is-weak">${match.mustWeak} zayıf</span><span class="is-missing">${match.mustMissing} yok</span><span>zorunlu gereksinim</span></div>
+      </div>`;
+  }
+
   function renderMatch(match) {
     const order = { missing: 0, weak: 1, strong: 2, unknown: 3 };
     const rows = [...match.items].sort((a, b) => (a.importance === b.importance ? 0 : a.importance === "must" ? -1 : 1) || order[a.strength] - order[b.strength]);
     return `
       <section class="ct-match">
-        <div class="ct-verdict">
-          <strong>${esc(match.verdict)}</strong>
-          <p>${esc(match.advice)}</p>
-          <div class="ct-meter" aria-hidden="true">
-            <i class="is-strong" style="flex:${match.mustStrong}"></i><i class="is-weak" style="flex:${match.mustWeak}"></i><i class="is-missing" style="flex:${match.mustMissing}"></i>
-          </div>
-        </div>
-        <h3>Gereksinimler ve kasandaki kanıtlar</h3>
         <ul class="ct-match-list">${rows.map(item => `
           <li class="is-${item.strength}">
             <div class="ct-match-head">
@@ -73,14 +78,37 @@
         </header>
         ${t.notice ? `<div class="ct-busy">${esc(t.notice)}</div>` : ""}
         ${a.summary ? `<p>${esc(a.summary)}</p>` : ""}
-        <div data-match-slot>${match ? renderMatch(match) : `<p class="ct-muted">Eşleşme hesaplanamadı.</p>`}</div>
-        <div data-interview-slot="${t.id}"></div>
-        <div data-cvs-slot="${t.id}"></div>
-        ${t.guide ? renderGuide(t.guide) : ""}
-        ${a.responsibilities.length ? `<section><h3>İş tanımı</h3><ul class="ct-plain-list">${a.responsibilities.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
-        ${a.keywords.length ? `<section><h3>Anahtar kelimeler</h3><p class="ct-hint">İşe alım sistemlerinin CV'nde arayacağı terimler.</p><div class="ct-chips is-static">${a.keywords.map(k => `<span class="ct-chip">${esc(k)}</span>`).join("")}</div></section>` : ""}
-        ${t.postingText ? `<details class="ct-paste"><summary>İlan metnini göster</summary><pre class="ct-posting">${esc(t.postingText)}</pre></details>` : ""}
+        <div data-verdict-slot>${match ? renderVerdict(match) : ""}</div>
+        <nav class="ct-steps" role="tablist">
+          <button type="button" role="tab" data-step="match" class="is-active" aria-selected="true"><b>1</b> Eşleşme <span data-count="match">${match ? match.items.length : ""}</span></button>
+          <button type="button" role="tab" data-step="questions" aria-selected="false"><b>2</b> Sorular <span data-count="questions"></span></button>
+          <button type="button" role="tab" data-step="cv" aria-selected="false"><b>3</b> CV <span data-count="cv"></span></button>
+          <button type="button" role="tab" data-step="posting" aria-selected="false">${t.guide ? "Meslek rehberi" : "İlan"}</button>
+        </nav>
+        <div data-panel="match" data-match-slot>${match ? renderMatch(match) : `<p class="ct-muted">Eşleşme hesaplanamadı.</p>`}</div>
+        <div data-panel="questions" data-interview-slot="${t.id}" hidden></div>
+        <div data-panel="cv" data-cvs-slot="${t.id}" hidden></div>
+        <div data-panel="posting" class="ct-posting-panel" hidden>
+          ${t.guide ? renderGuide(t.guide) : ""}
+          ${a.responsibilities.length ? `<section><h3>İş tanımı</h3><ul class="ct-plain-list">${a.responsibilities.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
+          ${a.keywords.length ? `<section><h3>Anahtar kelimeler</h3><p class="ct-hint">İşe alım sistemlerinin CV'nde arayacağı terimler.</p><div class="ct-chips is-static">${a.keywords.map(k => `<span class="ct-chip">${esc(k)}</span>`).join("")}</div></section>` : ""}
+          ${t.postingText ? `<details class="ct-paste"><summary>İlan metnini göster</summary><pre class="ct-posting">${esc(t.postingText)}</pre></details>` : ""}
+        </div>
       </article>`;
+  }
+
+  // Adımlar: eşleşme, sorular, CV. Uzun tek sayfa yerine bir seferde bir adım.
+  function showStep(root, step) {
+    root.querySelectorAll("[data-step]").forEach(b => {
+      b.classList.toggle("is-active", b.dataset.step === step);
+      b.setAttribute("aria-selected", b.dataset.step === step);
+    });
+    root.querySelectorAll("[data-panel]").forEach(p => { p.hidden = p.dataset.panel !== step; });
+  }
+
+  function setCount(root, name, value) {
+    const el = root.querySelector(`[data-count="${name}"]`);
+    if (el) el.textContent = value || "";
   }
 
   // ---- Sorular ----
@@ -88,19 +116,22 @@
   const QUESTION_KIND = { requirement: "Eksik nitelik", soft: "Örnek durum", number: "Rakam" };
 
   function renderInterview(data) {
+    const next = `<button class="ct-button ct-button-secondary ct-add" type="button" data-goto-step="cv">CV adımına geç →</button>`;
     if (!data.questions.length)
-      return `<section class="ct-interview"><h3>Sorular</h3><p class="ct-muted">${data.answeredCount ? "Sorulacak bir şey kalmadı. Cevapların kasana eklendi." : "Bu hedef için sorulacak bir şey yok; kasandakiler yeterli görünüyor."}</p></section>`;
+      return `<section class="ct-interview"><p class="ct-muted">${data.answeredCount ? "Sorulacak bir şey kalmadı. Cevapların kasana eklendi." : "Bu hedef için sorulacak bir şey yok; kasandakiler yeterli görünüyor."}</p>${next}</section>`;
+    // Aynı örnek her soruda tekrar etmesin; ilk geçtiği yerde bir kez.
+    const shownHints = new Set();
+    const hintOnce = hint => shownHints.has(hint) ? "" : (shownHints.add(hint), `<p class="ct-hint">${esc(hint)}</p>`);
     const parents = data.parents.map(p => `<option value="${p.id}">${esc(p.label)}</option>`).join("");
     return `
       <section class="ct-interview">
-        <h3>Sorular <span>${data.questions.length}</span></h3>
-        <p class="ct-hint">Kanıtı eksik ya da zayıf kalan yerler için. Cevabın kasana kendi cümlenle eklenir; CV'de nasıl yazılacağını sonraki adımda birlikte düzenleriz. Yapmadığın bir şey için "Yok" de, uydurmayalım.</p>
+        <p class="ct-hint">Kanıtı eksik ya da zayıf kalan yerler için. Cevabın kasana kendi cümlenle eklenir; CV'de nasıl yazılacağını sonraki adımda birlikte düzenleriz. Yapmadığın bir şey için "Yok" de, uydurmayalım. Hepsini cevaplamak zorunda değilsin.</p>
         ${data.questions.map(q => `
           <form class="ct-question" data-key="${esc(q.key)}" novalidate>
             <span class="ct-tag">${QUESTION_KIND[q.kind] || "Soru"}</span>
             <p class="ct-question-prompt">${esc(q.prompt)}</p>
             <textarea class="ct-textarea" rows="2" aria-label="Cevap"></textarea>
-            <p class="ct-hint">${esc(q.hint)}</p>
+            ${hintOnce(q.hint)}
             <div class="ct-question-row">
               ${parents ? `<label class="ct-field"><span>Hangi işe ya da projeye eklensin?</span><select class="ct-input" data-parent>${parents}</select></label>` : ""}
               <div class="ct-actions">
@@ -109,6 +140,7 @@
               </div>
             </div>
           </form>`).join("")}
+        ${next}
       </section>`;
   }
 
@@ -128,6 +160,8 @@
       if (select && q.suggestedParentId) select.value = q.suggestedParentId;
     });
     root.querySelector("[data-match-slot]").innerHTML = renderMatch(data.match);
+    root.querySelector("[data-verdict-slot]").innerHTML = renderVerdict(data.match);
+    setCount(root, "questions", data.questions.length);
   }
 
   async function sendAnswer(form, skip) {
@@ -170,9 +204,9 @@
     if (!slot) return;
     const { ok, data } = await session.api.get(`/api/cvs?targetId=${targetId}`);
     const versions = ok ? data : [];
+    setCount(root, "cv", versions.length);
     slot.innerHTML = `
       <section class="ct-cv-block">
-        <h3>CV</h3>
         <p class="ct-hint">Seçilen maddeler bu ilana göre yeniden yazılır, tek sayfaya sığdırılır. Her değişikliği provada tek tek onaylarsın; kasandaki bilgiler değişmez.</p>
         <div class="ct-actions">
           <button class="ct-button" type="button" data-generate-cv="${targetId}">${versions.length ? "Yeni sürüm hazırla" : "Bu hedef için CV hazırla"}</button>
@@ -204,6 +238,12 @@
   ["#ct-new-result", "#ct-cvs-detail"].forEach(selector => $(selector).addEventListener("click", event => {
     const button = event.target.closest("[data-generate-cv]");
     if (button) generateCv(button);
+    const step = event.target.closest("[data-step], [data-goto-step]");
+    if (step) {
+      const root = $(selector);
+      showStep(root, step.dataset.step || step.dataset.gotoStep);
+      if (step.dataset.gotoStep) root.querySelector(".ct-steps").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }));
 
   async function loadMatch(id) {
@@ -308,11 +348,24 @@
     const { ok, data } = await session.api.get("/api/targets");
     if (!ok) return;
     $("#ct-cvs-empty").hidden = data.length > 0;
-    $("#ct-target-list").innerHTML = data.map(t => `
+    // Satırda: kasanın bugünkü hâliyle zorunlu gereksinim uyumu ve son CV'nin durumu.
+    $("#ct-target-list").innerHTML = data.map(t => {
+      const measured = t.mustStrong + t.mustWeak + t.mustMissing;
+      const cv = t.cvCount === 0 ? `<span class="ct-muted">Henüz CV yok</span>`
+        : `<span class="ct-badge ${t.latestCvStatus === "ready" ? "is-strong" : "is-unknown"}">${t.latestCvStatus === "ready" ? "Onaylandı" : "Taslak"}</span>${t.cvCount > 1 ? `<span class="ct-muted">${t.cvCount} sürüm</span>` : ""}`;
+      return `
       <button class="ct-target-row" type="button" data-open-target="${t.id}">
-        <span class="ct-target-row-main"><strong>${esc(t.title)}</strong><span>${esc([t.company, SENIORITY[t.seniority]].filter(Boolean).join(" · "))}</span></span>
-        <span class="ct-target-row-side"><span>${t.mustCount} zorunlu · ${t.niceCount} tercih</span><span>${dateFormat.format(new Date(t.createdAt))}</span></span>
-      </button>`).join("");
+        <span class="ct-target-row-main">
+          <strong>${esc(t.title)}</strong>
+          <span>${esc([t.company, SENIORITY[t.seniority], dateFormat.format(new Date(t.createdAt))].filter(Boolean).join(" · "))}</span>
+        </span>
+        <span class="ct-target-row-fit">
+          ${measured ? `<span class="ct-meter" aria-hidden="true"><i class="is-strong" style="flex:${t.mustStrong}"></i><i class="is-weak" style="flex:${t.mustWeak}"></i><i class="is-missing" style="flex:${t.mustMissing}"></i></span>
+          <span>${t.mustStrong}/${measured} zorunlu gereksinim</span>` : `<span class="ct-muted">${t.mustCount} zorunlu · ${t.niceCount} tercih</span>`}
+        </span>
+        <span class="ct-target-row-side">${cv}</span>
+      </button>`;
+    }).join("");
   }
 
   async function openTarget(id) {
