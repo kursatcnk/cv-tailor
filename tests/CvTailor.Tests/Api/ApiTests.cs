@@ -162,6 +162,12 @@ namespace CvTailor.Tests.Api
             var docx = await client.GetAsync($"/api/cvs/{cv.Id}/docx");
             Assert.Equal("PK", System.Text.Encoding.ASCII.GetString((await docx.Content.ReadAsByteArrayAsync())[..2]));
             Assert.True((await client.GetJsonAsync<AtsReport>($"/api/cvs/{cv.Id}/ats")).Passed);
+
+            // Provadaki önizleme: indirilecek PDF'in sayfası PNG olarak; olmayan sayfa 404.
+            var preview = await client.GetAsync($"/api/cvs/{cv.Id}/preview/1");
+            Assert.Equal("image/png", preview.Content.Headers.ContentType?.MediaType);
+            Assert.Equal("1", preview.Headers.GetValues("X-Page-Count").Single());
+            Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/cvs/{cv.Id}/preview/2")).StatusCode);
         }
 
         [Fact]

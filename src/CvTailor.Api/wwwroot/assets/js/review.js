@@ -19,6 +19,33 @@
   const currentText = c => c.editedText ?? c.after;
   const isUnchanged = c => c.before === c.after && !c.editedText;
 
+  // İlanın kelimeleri yeni metinde işaretleniyor: kullanıcı "neden böyle yazıldı"yı görsün.
+  // İ/ı için tr ile küçültülüyor. Kelimenin başı tam eşleşmeli; uzun terimlere Türkçe ek gelebilir ("Docker'ı",
+  // "muhasebede"), kısa terimlerde ("Go", "SQL") hemen harf gelirse başka bir kelimedir ("Google").
+  function highlight(text) {
+    const lower = text.toLocaleLowerCase("tr");
+    const ranges = [];
+    for (const term of [...(cv.keywords || [])].sort((a, b) => b.length - a.length)) {
+      const t = term.toLocaleLowerCase("tr");
+      if (t.length < 2) continue;
+      for (let i = lower.indexOf(t); i >= 0; i = lower.indexOf(t, i + 1)) {
+        const before = lower[i - 1], after = lower[i + t.length];
+        if (before && /[\p{L}\p{N}]/u.test(before)) continue;
+        if (t.length <= 3 && after && /[\p{L}\p{N}+#]/u.test(after)) continue;
+        // Uzun terim önce işaretlendi; "SQL Server" içindeki "SQL" ikinci kez işaretlenmesin.
+        if (ranges.some(([s, e]) => i < e && i + t.length > s)) continue;
+        ranges.push([i, i + t.length]);
+      }
+    }
+    ranges.sort((a, b) => a[0] - b[0]);
+    let html = "", pos = 0;
+    for (const [s, e] of ranges) {
+      html += `${esc(text.slice(pos, s))}<mark class="ct-kw">${esc(text.slice(s, e))}</mark>`;
+      pos = e;
+    }
+    return html + esc(text.slice(pos));
+  }
+
   function decisionLabel(c) {
     if (c.decision === "pending") return "Onay bekliyor · CV'de orijinali var";
     if (c.decision === "rejected") return "CV'de orijinali var";
@@ -34,7 +61,7 @@
       <div class="ct-change is-${c.decision}" data-change="${esc(c.id)}">
         <div class="ct-change-cols">
           <div class="ct-change-before"><span>Önce</span><p>${c.before ? esc(c.before) : "<em>Yoktu</em>"}</p></div>
-          <div class="ct-change-after"><span>Sonra</span><p>${esc(currentText(c))}</p></div>
+          <div class="ct-change-after"><span>Sonra</span><p>${highlight(currentText(c))}</p></div>
         </div>
         <p class="ct-change-reason"><strong>Neden:</strong> ${esc(c.reason)}</p>
         ${reqs.length ? `<div class="ct-chips is-static">${reqs.map(r => `<span class="ct-chip">${esc(r)}</span>`).join("")}</div>` : ""}
@@ -134,6 +161,49 @@
     if (box) box.innerHTML = renderScorecard();
   }
 
+  // ---- Canlı önizleme ----
+  // Sunucu indirilecek PDF'i sayfa sayfa resim olarak çiziyor. Geniş ekranda sağda sabit, dar ekranda üstte kapalı gelir.
+
+  const preview = document.querySelector("#ct-preview");
+  const previewPages = document.querySelector("#ct-preview-pages");
+  let previewRequest = 0;
+  let previewUrls = [];
+
+  async function fetchPage(page) {
+    const response = await fetch(`/api/cvs/${cv.id}/preview/${page}`, { credentials: "same-origin" });
+    if (!response.ok) return null;
+    return { url: URL.createObjectURL(await response.blob()), count: Number(response.headers.get("X-Page-Count") || 1) };
+  }
+
+  async function loadPreview() {
+    const request = ++previewRequest;
+    if (preview.hidden) {
+      preview.hidden = false;
+      preview.open = window.matchMedia("(min-width: 1200px)").matches;
+    }
+    preview.classList.add("is-loading");
+    const first = await fetchPage(1);
+    if (!first || request !== previewRequest) return;
+    const rest = await Promise.all(Array.from({ length: first.count - 1 }, (_, i) => fetchPage(i + 2)));
+    if (request !== previewRequest) return;
+
+    previewUrls.forEach(URL.revokeObjectURL);
+    previewUrls = [first, ...rest].filter(Boolean).map(p => p.url);
+    previewPages.innerHTML = previewUrls.map((url, i) =>
+      `<button type="button" class="ct-preview-page" data-page="${i}" aria-label="Sayfa ${i + 1}, büyüt"><img src="${url}" alt="CV önizlemesi, sayfa ${i + 1}"></button>`).join("");
+    document.querySelector("#ct-preview-info").textContent = first.count > 1 ? `${first.count} sayfa · tek sayfaya sığmadı` : "1 sayfa";
+    preview.classList.toggle("is-overflow", first.count > 1);
+    preview.classList.remove("is-loading");
+  }
+
+  // Yan paneldeki sayfa okunacak kadar büyük değil; tıklayınca tam boy.
+  previewPages.addEventListener("click", event => {
+    const page = event.target.closest("[data-page]");
+    if (!page) return;
+    document.querySelector("#ct-preview-large").innerHTML = previewUrls.map((url, i) => `<img src="${url}" alt="CV önizlemesi, sayfa ${i + 1}">`).join("");
+    document.querySelector("#ct-preview-dialog").showModal();
+  });
+
   async function loadAts() {
     const request = ++atsRequest;
     const { ok, data } = await session.api.get(`/api/cvs/${cv.id}/ats`);
@@ -151,21 +221,21 @@
     const notes = [cv.notice, ...(cv.warnings || [])].filter(Boolean);
 
     root.innerHTML = `
+      <a class="ct-link-button" href="#cvs">← CV'lerim</a>
       <header class="ct-view-head ct-view-head-row">
         <div>
           <h1>CV provası</h1>
           <p>${esc(cv.targetTitle)} · <span class="ct-badge ${cv.status === "ready" ? "is-strong" : "is-unknown"}">${cv.status === "ready" ? "Onaylandı" : "Taslak"}</span></p>
+          <p class="ct-summary-line">${rewritten} madde yeniden yazıldı${pending ? ` · <strong>${pending} madde onay bekliyor</strong>` : ""} · ${doc.dropped.length} öğe CV'ye girmedi</p>
         </div>
         <div class="ct-actions">
-          <a class="ct-button ct-button-secondary" href="#cvs">CV'lerim</a>
           <a class="ct-button ct-button-secondary" href="/api/cvs/${cv.id}/pdf">PDF indir</a>
           <a class="ct-button ct-button-secondary" href="/api/cvs/${cv.id}/docx">Word indir</a>
           <button class="ct-button" type="button" data-act="approve">${cv.status === "ready" ? "Onaylandı" : "CV'yi onayla"}</button>
         </div>
       </header>
       ${notes.length ? `<div class="ct-review"><ul>${notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>` : ""}
-      <p class="ct-summary-line">${rewritten} madde yeniden yazıldı${pending ? ` · <strong>${pending} madde onay bekliyor</strong>` : ""} · ${doc.dropped.length} öğe CV'ye girmedi</p>
-      <p class="ct-hint">PDF ve Word dosyası her maddenin son hâliyle hazırlanır: kabul ettiklerin yeni hâliyle, diğerleri orijinaliyle.</p>
+      <p class="ct-hint">Dosyalar her maddenin son hâliyle hazırlanır: kabul ettiklerin yeni hâliyle, diğerleri orijinaliyle. Yeni metinlerde <mark class="ct-kw">ilanın kelimeleri</mark> işaretli.</p>
       <div id="ct-ats">${renderAts()}</div>
       <div id="ct-scorecard">${renderScorecard()}</div>
 
@@ -211,6 +281,9 @@
 
   async function load(id) {
     root.innerHTML = `<p class="ct-loading">CV yükleniyor...</p>`;
+    // Başka bir CV'den kalan önizleme görünmesin.
+    preview.hidden = true;
+    previewPages.innerHTML = "";
     const { ok, data } = await session.api.get(`/api/cvs/${id}`);
     if (!ok) { root.innerHTML = `<p class="ct-muted">${esc(data?.message || "CV bulunamadı.")}</p>`; return; }
     cv = data;
@@ -218,6 +291,7 @@
     scorecard = null;
     render();
     loadAts();
+    loadPreview();
     loadScorecard();
   }
 
@@ -228,6 +302,7 @@
     render();
     // Basılan metin değişti; ATS testi ve karne yeniden. Eski sonuç yenisi gelene kadar ekranda kalıyor.
     loadAts();
+    loadPreview();
     loadScorecard();
     const changed = cv.changes.find(c => c.id === changeId);
     if (changed?.guard.status === "flagged" && body.text) ui.toast("Kaydedildi, ama yazdığın metinde kasada olmayan bilgi var.", "error");

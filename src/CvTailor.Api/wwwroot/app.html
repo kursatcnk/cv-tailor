@@ -158,7 +158,18 @@
       </section>
 
       <section class="ct-view" data-view="review" hidden>
-        <div id="ct-review-root"><p class="ct-loading">CV yükleniyor...</p></div>
+        <div class="ct-review-layout">
+          <div id="ct-review-root"><p class="ct-loading">CV yükleniyor...</p></div>
+          <!-- İndirilecek PDF'in kendisi; her karardan sonra yenileniyor. Sayfa yeniden çizilince gidip gelmesin diye ayrı. -->
+          <details class="ct-preview" id="ct-preview" hidden>
+            <summary><strong>CV önizlemesi</strong><span id="ct-preview-info"></span></summary>
+            <div class="ct-preview-pages" id="ct-preview-pages"></div>
+          </details>
+          <dialog class="ct-preview-dialog" id="ct-preview-dialog" aria-label="CV önizlemesi">
+            <form method="dialog"><button class="ct-icon-button" type="submit" aria-label="Kapat">×</button></form>
+            <div id="ct-preview-large"></div>
+          </dialog>
+        </div>
       </section>
 
       <section class="ct-view" data-view="account" hidden>

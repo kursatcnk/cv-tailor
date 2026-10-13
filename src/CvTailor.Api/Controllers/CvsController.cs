@@ -62,6 +62,20 @@ namespace CvTailor.Api.Controllers
             return File(CvDocxRenderer.Render(cv), "application/vnd.openxmlformats-officedocument.wordprocessingml.document", FileName(cv, "docx"));
         }
 
+        // Provadaki canlı önizleme: PDF'in sayfası resim olarak. Tarayıcının PDF göstericisine güvenmiyoruz
+        // (telefonda çoğu zaman açmıyor); sunucuda aynı belgeden çiziliyor, ne indirilecekse o görünüyor.
+        [HttpGet("{id:guid}/preview/{page:int}")]
+        public async Task<IActionResult> Preview(Guid id, int page, CancellationToken cancellationToken)
+        {
+            var cv = await _tailoring.GetAsync(User.GetUserId(), id, cancellationToken);
+            if (cv == null) return NotFound(MessageResponse.Fail("CV bulunamadı."));
+            var pages = CvPdfRenderer.Preview(cv);
+            if (page < 1 || page > pages.Count) return NotFound(MessageResponse.Fail("Sayfa yok."));
+            Response.Headers["X-Page-Count"] = pages.Count.ToString();
+            Response.Headers.CacheControl = "no-store";
+            return File(pages[page - 1], "image/png");
+        }
+
         // İndirilecek dosyaların ikisini de üretip CV okuyucumuzla geri okuyor; prova ekranındaki "ATS testi".
         [HttpGet("{id:guid}/ats")]
         public async Task<ActionResult<AtsReport>> Ats(Guid id, CancellationToken cancellationToken)

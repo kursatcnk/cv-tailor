@@ -557,6 +557,7 @@ namespace CvTailor.Api.Services.Tailoring
             TargetId = cv.JobTargetId,
             TargetTitle = targetTitle,
             RequirementLabels = analysis.Requirements.Where(r => r.Key != null && r.Text != null).ToDictionary(r => r.Key!, r => r.Text!),
+            Keywords = analysis.Requirements.SelectMany(r => r.Terms).Concat(analysis.Keywords).Where(k => !string.IsNullOrWhiteSpace(k)).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
             Status = cv.Status,
             Document = document,
             Changes = changes,

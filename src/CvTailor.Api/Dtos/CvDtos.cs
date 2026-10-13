@@ -116,6 +116,8 @@ namespace CvTailor.Api.Dtos
         public string TargetTitle { get; set; } = string.Empty;
         // r1 → "En az 1 yıl C# deneyimi"; prova ekranı maddenin hangi gereksinimi kanıtladığını gösteriyor.
         public Dictionary<string, string> RequirementLabels { get; set; } = new();
+        // İlanın terimleri ve anahtar kelimeleri; prova ekranı yeni metinde bunları vurguluyor.
+        public List<string> Keywords { get; set; } = new();
         public string Status { get; set; } = "draft";
         public CvDocument Document { get; set; } = new();
         public List<CvChange> Changes { get; set; } = new();

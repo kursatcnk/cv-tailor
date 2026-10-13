@@ -26,6 +26,10 @@ namespace CvTailor.Api.Services.Tailoring
 
         public static byte[] Render(TailoredCvDto cv) => Build(cv).GeneratePdf();
 
+        // Provadaki önizleme için sayfa resimleri. 110 DPI ekranda okunaklı ve bir A4 sayfası 100 KB civarı.
+        public static IReadOnlyList<byte[]> Preview(TailoredCvDto cv) =>
+            Build(cv).GenerateImages(new ImageGenerationSettings { ImageFormat = ImageFormat.Png, RasterDpi = 110 }).ToList();
+
         // PDF'e çevirmeden önceki belge; önizleme görüntüsü üretmek için de kullanılıyor.
         public static IDocument Build(TailoredCvDto cv)
         {
