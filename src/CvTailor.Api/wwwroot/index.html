@@ -3,11 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CV Tailor</title>
+  <meta name="description" content="CV'ni başvuracağın ilana göre, uydurmadan yeniden yazan ve her değişikliğin nedenini anlatan çalışma alanı.">
+  <title>CV Tailor · CV'n ilana göre, uydurmadan</title>
   <link rel="icon" href="assets/img/mark.svg" type="image/svg+xml">
   <script src="assets/js/session.js"></script>
-  <!-- Tanıtım sayfası yok; girişliyse uygulamaya, değilse girişe. -->
-  <script>location.replace(window.CvTailorSession.isSignedIn() ? "app.html#vault" : "auth/sign-in.html");</script>
+  <!-- Giriş yapmış kullanıcı tanıtımı görmesin, doğrudan kasasına. -->
+  <script>if (window.CvTailorSession.isSignedIn()) location.replace("app.html#vault");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="assets/css/landing.css">
 </head>
-<body></body>
+<body>
+  <header class="ld-nav">
+    <a class="ld-brand" href="index.html"><img src="assets/img/mark.svg" alt=""><strong>CV Tailor</strong></a>
+    <nav>
+      <a href="auth/sign-in.html">Giriş yap</a>
+      <a class="ld-button" href="auth/sign-up.html">Hesap oluştur</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="ld-hero">
+      <div class="ld-hero-copy">
+        <p class="ld-kicker">İlana göre CV hazırlama</p>
+        <h1>CV'n ilana göre, uydurmadan.</h1>
+        <p>CV'ni yükle, ilanı yapıştır. İlanın istediklerini deneyimlerinle eşleştirir, eksik kalanları sana sorar, maddeleri ilana göre yeniden yazar ve her değişikliğin nedenini söyler. Sonuç işe alım sistemlerinin sorunsuz okuduğu bir PDF ya da Word dosyası.</p>
+        <div class="ld-actions">
+          <a class="ld-button ld-button-large" href="auth/sign-up.html">Ücretsiz başla</a>
+          <a class="ld-link" href="#nasil">Nasıl çalışıyor?</a>
+        </div>
+        <p class="ld-note">Ayda 40 AI işlemi ücretsiz. Kart bilgisi istemiyoruz.</p>
+      </div>
+      <figure class="ld-shot">
+        <img src="assets/img/landing/prova.jpg" alt="Prova ekranı: her madde önce ve sonra yan yana, nedeni ve CV'nin canlı önizlemesiyle" width="1440" height="900">
+      </figure>
+    </section>
+
+    <section class="ld-section" id="nasil">
+      <h2>Beş adımda ilana özel CV</h2>
+      <ol class="ld-steps">
+        <li><strong>CV'ni yükle.</strong> PDF, Word ya da düz metin. Okunan bilgileri kontrol edip kariyer kasana kaydedersin; sonraki her CV buradan çıkar.</li>
+        <li><strong>Hedefi seç.</strong> İlanı yapıştır. İlan yoksa meslek ve seviye seç; elle hazırlanmış meslek profilleri devreye girer.</li>
+        <li><strong>Eşleşmeye bak.</strong> İlandaki her gereksinimin karşısında kasandaki kanıt ve gücü: güçlü, zayıf, yok.</li>
+        <li><strong>Soruları cevapla.</strong> Eksik kalanlar ve rakamsız maddeler için kısa sorular. Yapmadığın bir şey için "yok" dersin, o konuda madde yazılmaz.</li>
+        <li><strong>Provayı yap, indir.</strong> Her değişikliği kabul et, orijinali seç ya da düzenle; CV'nin son hâlini yanda canlı gör. İstersen aynı bilgilerle ön yazı da yazdır.</li>
+      </ol>
+    </section>
+
+    <section class="ld-section ld-split">
+      <div>
+        <h2>Uydurmuyor, ve bunu kod kontrol ediyor</h2>
+        <p>Yeni yazılan her madde dayandığı bilgiyi gösteriyor. AI'ın yazdığına güvenmiyoruz; her madde kasandaki kaynağıyla karşılaştırılıyor:</p>
+        <ul class="ld-checks">
+          <li>Kaynakta olmayan bir <strong>rakam</strong> var mı?</li>
+          <li>İlanın istediği ama senin yazmadığın bir <strong>teknoloji</strong> eklenmiş mi?</li>
+          <li>Kaynakta geçmeyen bir <strong>şirket ya da ürün adı</strong> var mı?</li>
+          <li>"Yardım ettim" cümlesi "<strong>yönettim</strong>"e dönmüş mü?</li>
+        </ul>
+        <p>Birine takılan madde kırmızıyla işaretleniyor ve sen onaylamazsan CV'ye orijinali giriyor.</p>
+      </div>
+      <figure class="ld-shot">
+        <img src="assets/img/landing/eslesme.jpg" alt="Eşleşme ekranı: ilandaki gereksinimler ve kasadaki kanıtlar" width="1440" height="900" loading="lazy">
+      </figure>
+    </section>
+
+    <section class="ld-section">
+      <h2>Göndermeden önce bilmen gerekenler</h2>
+      <div class="ld-grid">
+        <article>
+          <h3>ATS testi</h3>
+          <p>İndireceğin PDF ve Word dosyası, bir işe alım sistemi gibi geri okunuyor: adın, iletişim bilgilerin, bölüm başlıkları ve her madde tek tek aranıyor.</p>
+        </article>
+        <article>
+          <h3>Sağlık kontrolü</h3>
+          <p>Ters tarihler, açıklanmamış boşluklar, "takım çalışmasına yatkın" gibi klişeler ve "görev aldım" gibi zayıf ifadeler, sen yazarken işaretleniyor.</p>
+        </article>
+        <article>
+          <h3>Önce / sonra</h3>
+          <p>Yüklediğin CV ile ilana göre yazılan CV aynı ölçülerle karşılaştırılıyor: ilan kelimeleri, görünen gereksinimler, rakamlı maddeler.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="ld-section">
+      <h2>Kişisel verin</h2>
+      <div class="ld-grid">
+        <article>
+          <h3>AI'a gitmeden maskeleniyor</h3>
+          <p>Adın, e-postan, telefonun, linklerin, TC kimlik numarası ve IBAN, metin AI'a gönderilmeden yer tutucuyla değiştiriliyor.</p>
+        </article>
+        <article>
+          <h3>İstediğin an indir</h3>
+          <p>Bizde tuttuğumuz her şeyi tek bir dosya olarak indirebilirsin. Yüklediğin dosyaların kendisi saklanmıyor, sadece okunan metin.</p>
+        </article>
+        <article>
+          <h3>İstediğin an sil</h3>
+          <p>Hesabını silince kasan, ilanların ve bütün CV'lerin kalıcı olarak gidiyor.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="ld-cta">
+      <h2>Bir sonraki başvurun ilana göre olsun.</h2>
+      <a class="ld-button ld-button-large" href="auth/sign-up.html">Hesap oluştur</a>
+    </section>
+  </main>
+
+  <footer class="ld-footer">
+    <span>CV Tailor</span>
+    <a href="https://github.com/kursatcnk/cv-tailor">Kaynak kodu</a>
+  </footer>
+</body>
 </html>
