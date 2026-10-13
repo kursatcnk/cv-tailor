@@ -163,5 +163,28 @@ namespace CvTailor.Tests
             var result = _matcher.Match(Analysis(Requirement("Kubernetes deneyimi", "technical", "Kubernetes")), Profile(), Today);
             Assert.Equal("Ölçülebilen 1 zorunlu gereksinimin hiçbirini kasandaki bilgilerle kanıtlayamıyorsun.", result.Verdict);
         }
+
+        [Theory]
+        [InlineData("B2", "strong")]
+        [InlineData("A2", "weak")]
+        [InlineData(null, "weak")]
+        public void Language_level_must_reach_the_posting(string? level, string strength)
+        {
+            var profile = Profile();
+            profile.Skills.Single(s => s.Name == "İngilizce").Level = level;
+
+            var item = MatchSingle(Requirement("İyi derecede İngilizce", "language", "İngilizce"), profile);
+            Assert.Equal(strength, item.Strength);
+        }
+
+        [Theory]
+        [InlineData("İleri düzey İngilizce", 5)]
+        [InlineData("İngilizce (B2)", 4)]
+        [InlineData("Upper-intermediate English", 4)]
+        [InlineData("Orta seviye Almanca", 3)]
+        [InlineData("İngilizce bilen", null)]
+        [InlineData("B2B satış", null)]
+        public void Language_levels_are_read_from_text(string text, int? rank) =>
+            Assert.Equal(rank, LanguageLevel.Rank(text));
     }
 }

@@ -113,6 +113,19 @@ namespace CvTailor.Api.Services.Matching
                 item.Note = $"{string.Join(", ", matchedTerms)} görünüyor; {string.Join(", ", required)} görünmüyor.";
             }
 
+            // "İleri düzey İngilizce": dil listede var ama seviyesi düşükse ya da hiç yazılmamışsa tam kanıt değil.
+            if (item.Category == "language" && item.Strength == "strong" && LanguageLevel.Rank(item.Text) is { } wanted)
+            {
+                var have = item.Evidence.Where(e => e.Kind == "skill").Select(e => LanguageLevel.Rank(e.Text)).Max();
+                if (have == null || have < wanted)
+                {
+                    item.Strength = "weak";
+                    item.Note = have == null
+                        ? $"Seviyeni yazmamışsın; ilan {LanguageLevel.Name(wanted)} ve üstü istiyor. Kasana seviyesiyle ekle: \"İngilizce (B2)\"."
+                        : $"İlan {LanguageLevel.Name(wanted)} ve üstü istiyor; kasanda {LanguageLevel.Name(have.Value)} yazıyor.";
+                }
+            }
+
             // Terimsiz yıl şartında ("En az 3 yıl iş deneyimi") Strength yukarıda strong başladı; süre belirleyecek.
             if (years != null && item.Strength != "missing")
                 ApplyDuration(item, profile, years.Value, requirement.Terms.Count > 0, today);

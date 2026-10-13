@@ -1,0 +1,40 @@
+{
+  "name": "Satış · medikal",
+  "profile": {
+    "fullName": "Can Örnek",
+    "canTravel": true,
+    "experiences": [
+      {
+        "company": "Yıldız Medikal", "title": "Satış Temsilcisi", "employmentType": "full-time", "startDate": "2023-02", "isCurrent": true,
+        "achievements": [
+          { "text": "Ege bölgesinde 40 hastane ve klinikle kurumsal satış görüşmeleri yaptım.", "source": "cv" },
+          { "text": "Yıllık satış hedefinin %112'sine ulaştım.", "source": "cv" },
+          { "text": "CRM'e müşteri ziyaretlerini düzenli girdim.", "source": "cv" }
+        ]
+      },
+      {
+        "company": "Moda Giyim", "title": "Mağaza Satış Danışmanı", "employmentType": "part-time", "startDate": "2021-06", "endDate": "2023-01",
+        "achievements": [ { "text": "Mağaza içi satış ve kasa işlemlerini yürüttüm.", "source": "cv" } ]
+      }
+    ],
+    "skills": [ { "name": "Müzakere", "category": "soft" }, { "name": "İngilizce", "category": "language", "level": "A2" } ]
+  },
+  "requirements": [
+    { "text": "En az 2 yıl B2B satış deneyimi", "importance": "must", "category": "experience", "terms": ["B2B"], "expect": "strong" },
+    { "text": "CRM programı kullanımı", "importance": "must", "category": "tool", "terms": ["CRM"], "expect": "strong" },
+    { "text": "Salesforce bilgisi", "importance": "nice", "category": "tool", "terms": ["Salesforce"], "expect": "missing" },
+    { "text": "İleri düzey İngilizce", "importance": "must", "category": "language", "terms": ["İngilizce"], "expect": "weak" },
+    { "text": "Sahada müşteri ziyareti yapabilecek, seyahat engeli olmayan", "importance": "must", "category": "other", "terms": [], "expect": "strong" },
+    { "text": "Medikal sektör deneyimi tercih sebebidir", "importance": "nice", "category": "experience", "terms": ["medikal"], "expect": "strong" },
+    { "text": "Hedef odaklı çalışma", "importance": "must", "category": "soft", "terms": [], "expect": "unknown" }
+  ],
+  "rewrites": [
+    { "source": "Ege bölgesinde 40 hastane ve klinikle kurumsal satış görüşmeleri yaptım.", "text": "Ege bölgesinde 40 hastane ve klinikle B2B satış görüşmeleri yaptım.", "fabricated": false },
+    { "source": "Ege bölgesinde 40 hastane ve klinikle kurumsal satış görüşmeleri yaptım.", "text": "Ege ve Marmara bölgelerinde 40 hastaneyle satış görüşmeleri yaptım.", "fabricated": true, "why": "Marmara kaynakta yok" },
+    { "source": "Yıllık satış hedefinin %112'sine ulaştım.", "text": "Yıllık satış hedefini %112 oranında gerçekleştirdim.", "fabricated": false },
+    { "source": "Yıllık satış hedefinin %112'sine ulaştım.", "text": "Yıllık satış hedefini %112 gerçekleştirerek bölge birincisi oldum.", "fabricated": true, "why": "bölge birinciliği kaynakta yok; rakam ya da ad içermeyen iddia" },
+    { "source": "CRM'e müşteri ziyaretlerini düzenli girdim.", "text": "Müşteri ziyaretlerini CRM'de düzenli kaydettim.", "fabricated": false },
+    { "source": "CRM'e müşteri ziyaretlerini düzenli girdim.", "text": "Müşteri ziyaretlerini Salesforce CRM'de kaydettim.", "fabricated": true, "why": "Salesforce kaynakta yok" },
+    { "source": "Mağaza içi satış ve kasa işlemlerini yürüttüm.", "text": "Mağaza içi satış ve kasa işlemlerini yürüttüm.", "fabricated": false }
+  ]
+}

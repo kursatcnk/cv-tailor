@@ -73,7 +73,9 @@ namespace CvTailor.Api.Services.Quality
             tail = tail[^Math.Min(60, tail.Length)..];
             var word = Regex.Match(tail, @"(\p{L}+)$").Value.ToLower(Tr);
             if (word.Length < 4) return null;
-            if (Regex.IsMatch(word, "(ıldı|ildi|uldu|üldü|ndı|ndi|ndu|ndü)$")) return "edilgen";
+            if (Regex.IsMatch(word, "(ıldı|ildi|uldu|üldü)$")) return "edilgen";
+            // "-ndı" edilgeni ("tamamlandı", "sağlandı") kısa etken fiillerle karışıyor ("indi", "döndü", "kazandı"); kısaları sayma.
+            if (word.Length >= 8 && Regex.IsMatch(word, "(ndı|ndi|ndu|ndü)$")) return "edilgen";
             if (Regex.IsMatch(word, "(dım|dim|dum|düm|tım|tim|tum|tüm)$")) return "birinci";
             if (Regex.IsMatch(word, "(ması|mesi|mak|mek)$") || Regex.IsMatch(word, "(ma|me)$")) return "isim";
             return null;

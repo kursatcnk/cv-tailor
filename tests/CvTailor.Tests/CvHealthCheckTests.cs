@@ -162,10 +162,17 @@ namespace CvTailor.Tests
         [Theory]
         [InlineData("API'yi geliştirdim", "birinci")]
         [InlineData("API geliştirildi.", "edilgen")]
+        [InlineData("Taşıma süreci 2 haftada tamamlandı.", "edilgen")]
         [InlineData("Ödeme ekranının tasarlanması", "isim")]
         [InlineData("Raporlama", "isim")]
         public void Mood_reads_the_last_word(string text, string mood) =>
             Assert.Equal(mood, BulletLinter.Mood(text));
+
+        [Theory]
+        [InlineData("Yanıt süresi 800 ms'den 250 ms'ye indi.")]
+        [InlineData("Bölge satışında ilk sıraya döndü.")]
+        public void Short_active_verbs_are_not_passive(string text) =>
+            Assert.Null(BulletLinter.Mood(text));
 
         [Theory]
         [InlineData("Ödeme API'si 2 haftada geliştirildi.", "passive")]

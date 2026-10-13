@@ -9,7 +9,8 @@ namespace CvTailor.Api.Services.Tailoring
     // ve kullanıcı onaylamadan CV'ye girmiyor. Prompt "uydurma" diyor ama buna güvenmiyorum; son söz kodda.
     public class FabricationGuard
     {
-        private static readonly Regex Number = new(@"\d+(?:[.,]\d+)?", RegexOptions.Compiled);
+        // Harften sonra gelen rakam bir adın parçası, miktar değil: "B2B", "HTML5", "ES6", "S3". "2x", "%40", "3 kat" yine rakam.
+        private static readonly Regex Number = new(@"(?<!\p{L})\d+(?:[.,]\d+)?", RegexOptions.Compiled);
         // Büyük harfle başlayan kelime ya da kısaltma: "Trendyol", "SAP", "Örnek"
         private static readonly Regex ProperWord = new(@"(?<![\p{L}\p{N}])\p{Lu}[\p{L}\p{N}.#+]*", RegexOptions.Compiled);
         private static readonly string[] Leadership = { "yönet", "liderlik", "lider ", "liderliğ", "koordine", "ekibin başında", "ekip lideri", "sorumluluğunu üstlen" };

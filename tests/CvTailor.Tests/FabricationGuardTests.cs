@@ -28,6 +28,12 @@ namespace CvTailor.Tests
             Assert.Contains("Kaynakta olmayan rakam: 40", result.Issues);
         }
 
+        [Theory]
+        [InlineData("Ege'de 40 klinikle B2B satış görüşmeleri yaptım.", "verified")]
+        [InlineData("Ege'de 40 klinikle satış görüşmelerini 2x artırdım.", "flagged")]
+        public void Digits_inside_names_are_not_numbers(string text, string status) =>
+            Assert.Equal(status, _guard.Check(text, "Ege'de 40 klinikle kurumsal satış görüşmeleri yaptım.", Array.Empty<string>()).Status);
+
         [Fact]
         public void A_posting_keyword_that_the_facts_do_not_support_is_flagged()
         {

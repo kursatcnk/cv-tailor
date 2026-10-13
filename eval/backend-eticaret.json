@@ -1,0 +1,50 @@
+{
+  "name": "Backend · e-ticaret",
+  "profile": {
+    "fullName": "Deniz Örnek",
+    "militaryStatus": "done",
+    "experiences": [
+      {
+        "company": "Kuzey Ticaret", "title": "Yazılım Geliştirici", "employmentType": "full-time", "startDate": "2022-03", "isCurrent": true,
+        "achievements": [
+          { "text": "Sipariş servisini ASP.NET Core ile yeniden yazdım; yanıt süresi 800 ms'den 250 ms'ye indi.", "source": "cv" },
+          { "text": "SQL Server'da yavaş raporlama sorgularını indekslerle hızlandırdım.", "source": "cv" },
+          { "text": "Ödeme sağlayıcısı entegrasyonu için REST API uçları geliştirdim.", "source": "cv" },
+          { "text": "GitHub Actions ile test ve dağıtım hattı kurdum.", "source": "cv" }
+        ]
+      },
+      {
+        "company": "Mavi Bilişim", "title": "Stajyer Yazılım Geliştirici", "employmentType": "internship", "startDate": "2021-06", "endDate": "2021-09",
+        "achievements": [ { "text": "Python ile küçük veri temizleme betikleri yazdım.", "source": "cv" } ]
+      }
+    ],
+    "educations": [ { "school": "Ege Örnek Üniversitesi", "field": "Bilgisayar Mühendisliği", "degree": "Lisans" } ],
+    "skills": [
+      { "name": "C#", "category": "technical" }, { "name": "SQL Server", "category": "technical" },
+      { "name": "Git", "category": "tool" }, { "name": "Docker", "category": "tool" },
+      { "name": "İngilizce", "category": "language", "level": "B2" }
+    ]
+  },
+  "requirements": [
+    { "text": "En az 3 yıl C# ile backend geliştirme deneyimi", "importance": "must", "category": "technical", "terms": ["C#"], "expect": "strong" },
+    { "text": "MSSQL veya PostgreSQL bilgisi", "importance": "must", "category": "technical", "terms": ["MSSQL", "PostgreSQL"], "expect": "strong" },
+    { "text": "REST API tasarımı", "importance": "must", "category": "technical", "terms": ["REST API"], "expect": "strong" },
+    { "text": "CI/CD süreçlerine hakimiyet", "importance": "must", "category": "tool", "terms": ["CI/CD"], "expect": "strong" },
+    { "text": "Docker ve Kubernetes deneyimi", "importance": "nice", "category": "tool", "terms": ["Docker", "Kubernetes"], "expect": "weak" },
+    { "text": "Mesaj kuyruğu (RabbitMQ, Kafka) deneyimi", "importance": "nice", "category": "technical", "terms": ["RabbitMQ", "Kafka"], "expect": "missing" },
+    { "text": "Bilgisayar Mühendisliği veya ilgili bölüm mezunu", "importance": "must", "category": "education", "terms": ["Bilgisayar Mühendisliği", "Yazılım Mühendisliği"], "expect": "strong" },
+    { "text": "İyi derecede İngilizce", "importance": "must", "category": "language", "terms": ["İngilizce"], "expect": "strong" },
+    { "text": "Askerlik hizmetini tamamlamış", "importance": "must", "category": "other", "terms": [], "expect": "strong" },
+    { "text": "Takım çalışmasına yatkın", "importance": "must", "category": "soft", "terms": [], "expect": "unknown" }
+  ],
+  "rewrites": [
+    { "source": "Sipariş servisini ASP.NET Core ile yeniden yazdım; yanıt süresi 800 ms'den 250 ms'ye indi.", "text": "Sipariş servisini ASP.NET Core ile yeniden yazarak yanıt süresini 800 ms'den 250 ms'ye düşürdüm.", "fabricated": false },
+    { "source": "Sipariş servisini ASP.NET Core ile yeniden yazdım; yanıt süresi 800 ms'den 250 ms'ye indi.", "text": "Sipariş servisini ASP.NET Core ile yeniden yazarak yanıt süresini %70 azalttım.", "fabricated": true, "why": "yüzde kaynakta yok" },
+    { "source": "SQL Server'da yavaş raporlama sorgularını indekslerle hızlandırdım.", "text": "MSSQL'de yavaş rapor sorgularını indeksleme ile hızlandırdım.", "fabricated": false },
+    { "source": "SQL Server'da yavaş raporlama sorgularını indekslerle hızlandırdım.", "text": "SQL Server ve Redis kullanarak raporlama sorgularını hızlandırdım.", "fabricated": true, "why": "Redis kaynakta yok" },
+    { "source": "GitHub Actions ile test ve dağıtım hattı kurdum.", "text": "GitHub Actions ile CI/CD hattı kurdum.", "fabricated": false },
+    { "source": "GitHub Actions ile test ve dağıtım hattı kurdum.", "text": "GitHub Actions ile CI/CD hattı kurdum ve 5 kişilik ekibe liderlik ettim.", "fabricated": true, "why": "ekip ve liderlik kaynakta yok" },
+    { "source": "Ödeme sağlayıcısı entegrasyonu için REST API uçları geliştirdim.", "text": "Ödeme sağlayıcısı entegrasyonu için REST API uçları geliştirip servisi Kubernetes'e taşıdım.", "fabricated": true, "why": "Kubernetes kaynakta yok" },
+    { "source": "Python ile küçük veri temizleme betikleri yazdım.", "text": "Python ile veri temizleme betikleri yazdım.", "fabricated": false }
+  ]
+}

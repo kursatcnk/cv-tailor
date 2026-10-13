@@ -1,0 +1,44 @@
+{
+  "name": "Muhasebe · gıda",
+  "profile": {
+    "fullName": "Ayşe Örnek",
+    "driverLicense": "B",
+    "experiences": [
+      {
+        "company": "Deniz Danışmanlık", "title": "Muhasebe Elemanı", "employmentType": "full-time", "startDate": "2025-03", "isCurrent": true,
+        "achievements": [ { "text": "Ön muhasebe işlemlerini ve cari hesap takibini yaptım.", "source": "cv" } ]
+      },
+      {
+        "company": "Atlas Gıda A.Ş.", "title": "Muhasebe Uzmanı", "employmentType": "full-time", "startDate": "2020-01", "endDate": "2024-12",
+        "achievements": [
+          { "text": "Logo Tiger üzerinde aylık 1.200 faturanın kaydını yaptım.", "source": "cv" },
+          { "text": "e-Fatura ve e-Arşiv geçiş sürecinde muhasebe tarafını yürüttüm.", "source": "cv" },
+          { "text": "KDV ve muhtasar beyannamelerini hazırladım.", "source": "cv" },
+          { "text": "Banka mutabakatlarını Excel ile takip ettim.", "source": "cv" }
+        ]
+      }
+    ],
+    "educations": [ { "school": "Anadolu Örnek Üniversitesi", "field": "İşletme", "degree": "Lisans" } ],
+    "skills": [ { "name": "Logo", "category": "tool" }, { "name": "Excel", "category": "tool" } ]
+  },
+  "requirements": [
+    { "text": "Logo veya Netsis programlarına hakim", "importance": "must", "category": "tool", "terms": ["Logo", "Netsis"], "expect": "strong" },
+    { "text": "En az 5 yıl muhasebe deneyimi", "importance": "must", "category": "experience", "terms": ["muhasebe"], "expect": "strong" },
+    { "text": "e-dönüşüm süreçlerine hakim", "importance": "must", "category": "technical", "terms": ["e-Fatura"], "expect": "strong" },
+    { "text": "Beyanname hazırlama tecrübesi", "importance": "must", "category": "technical", "terms": ["beyanname"], "expect": "strong" },
+    { "text": "MS Office programlarını iyi kullanan", "importance": "must", "category": "tool", "terms": ["MS Office", "Excel"], "expect": "strong" },
+    { "text": "SMMM ruhsatı tercih sebebidir", "importance": "nice", "category": "certification", "terms": ["SMMM"], "expect": "missing" },
+    { "text": "İşletme, İktisat veya Maliye bölümü mezunu", "importance": "must", "category": "education", "terms": ["İşletme", "İktisat", "Maliye"], "expect": "strong" },
+    { "text": "B sınıfı ehliyet sahibi", "importance": "must", "category": "other", "terms": [], "expect": "strong" },
+    { "text": "Seyahat engeli olmayan", "importance": "must", "category": "other", "terms": [], "expect": "missing" }
+  ],
+  "rewrites": [
+    { "source": "Logo Tiger üzerinde aylık 1.200 faturanın kaydını yaptım.", "text": "Logo Tiger'da ayda 1.200 faturanın kaydını yaptım.", "fabricated": false },
+    { "source": "Logo Tiger üzerinde aylık 1.200 faturanın kaydını yaptım.", "text": "Logo Tiger'da ayda 1.500 faturanın kaydını hatasız yaptım.", "fabricated": true, "why": "1.500 kaynakta yok" },
+    { "source": "e-Fatura ve e-Arşiv geçiş sürecinde muhasebe tarafını yürüttüm.", "text": "e-Fatura ve e-Arşiv geçişinin muhasebe tarafını yürüttüm.", "fabricated": false },
+    { "source": "e-Fatura ve e-Arşiv geçiş sürecinde muhasebe tarafını yürüttüm.", "text": "e-Fatura ve e-Arşiv geçiş projesini yönettim.", "fabricated": true, "why": "rol büyütülmüş" },
+    { "source": "Banka mutabakatlarını Excel ile takip ettim.", "text": "Banka mutabakatlarını Excel'de takip ettim.", "fabricated": false },
+    { "source": "Banka mutabakatlarını Excel ile takip ettim.", "text": "Banka mutabakatlarını SAP üzerinden takip ettim.", "fabricated": true, "why": "SAP kaynakta yok" },
+    { "source": "KDV ve muhtasar beyannamelerini hazırladım.", "text": "KDV ve muhtasar beyannameleri hazırladım.", "fabricated": false }
+  ]
+}

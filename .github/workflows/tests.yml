@@ -15,3 +15,5 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - run: dotnet test CvTailor.sln --configuration Release
+      # Eşleştirme ve uydurma koruması kurgusal vakalarda eşiklerin altına düşerse kırmızı.
+      - run: dotnet run --project tools/CvTailor.Eval --configuration Release -- --check

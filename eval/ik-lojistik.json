@@ -1,0 +1,38 @@
+{
+  "name": "İK · lojistik",
+  "profile": {
+    "fullName": "Elif Örnek",
+    "experiences": [
+      {
+        "company": "Bulut Lojistik", "title": "İnsan Kaynakları Asistanı", "employmentType": "full-time", "startDate": "2025-10", "isCurrent": true,
+        "achievements": [
+          { "text": "İşe giriş evraklarını ve SGK bildirgelerini hazırladım.", "source": "cv" },
+          { "text": "Yeni çalışanlar için oryantasyon sunumu hazırladım.", "source": "cv" }
+        ]
+      },
+      {
+        "company": "Örnek Holding", "title": "İK Stajyeri", "employmentType": "internship", "startDate": "2025-07", "endDate": "2025-09",
+        "achievements": [
+          { "text": "Teknik pozisyonlar için 150 özgeçmişi ön elemeden geçirdim.", "source": "cv" },
+          { "text": "Mülakat takvimini ve aday iletişimini yürüttüm.", "source": "cv" }
+        ]
+      }
+    ],
+    "educations": [ { "school": "Örnek Üniversitesi", "field": "Psikoloji", "degree": "Lisans" } ],
+    "skills": [ { "name": "Excel", "category": "tool" }, { "name": "İngilizce", "category": "language", "level": "B2" } ]
+  },
+  "requirements": [
+    { "text": "İşe alım süreçlerinde deneyim", "importance": "must", "category": "experience", "terms": ["işe alım"], "expect": "strong" },
+    { "text": "SGK mevzuatı ve bordro bilgisi", "importance": "must", "category": "technical", "terms": ["SGK", "bordro"], "expect": "weak" },
+    { "text": "Psikoloji, İşletme veya ÇEEİ mezunu", "importance": "must", "category": "education", "terms": ["Psikoloji", "İşletme", "ÇEEİ"], "expect": "strong" },
+    { "text": "En az 1 yıl İK deneyimi", "importance": "must", "category": "experience", "terms": ["İK", "insan kaynakları"], "expect": "strong" },
+    { "text": "MS Excel'i iyi kullanan", "importance": "must", "category": "tool", "terms": ["Excel"], "expect": "weak" },
+    { "text": "İngilizce (B2)", "importance": "nice", "category": "language", "terms": ["İngilizce"], "expect": "strong" }
+  ],
+  "rewrites": [
+    { "source": "Teknik pozisyonlar için 150 özgeçmişi ön elemeden geçirdim.", "text": "Teknik pozisyonlar için 150 özgeçmişin ön elemesini yaptım.", "fabricated": false },
+    { "source": "Teknik pozisyonlar için 150 özgeçmişi ön elemeden geçirdim.", "text": "Teknik pozisyonlar için 150 özgeçmişi değerlendirip 12 işe alım yaptım.", "fabricated": true, "why": "12 işe alım kaynakta yok" },
+    { "source": "Yeni çalışanlar için oryantasyon sunumu hazırladım.", "text": "Yeni çalışanlar için oryantasyon programını koordine ettim.", "fabricated": true, "why": "rol büyütülmüş" },
+    { "source": "Mülakat takvimini ve aday iletişimini yürüttüm.", "text": "Mülakat takvimini ve adaylarla iletişimi yürüttüm.", "fabricated": false }
+  ]
+}
